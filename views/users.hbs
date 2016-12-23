@@ -1,0 +1,9 @@
+<a href="/">back to homepage</a>
+<h1>list of users</h1>
+{{#each users}}
+	<ul>
+		<li>username: {{this.username}}</li>
+		<li>email: {{this.email}}</li>
+		<li>password: {{this.password}}</li>
+	</ul>
+{{/each}}

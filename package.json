@@ -1,0 +1,29 @@
+{
+  "name": "regionstats",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/josh-tx/regionstats.git"
+  },
+  "author": "Joshua Allen and Gabrielle Cordray",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/josh-tx/regionstats/issues"
+  },
+  "homepage": "https://github.com/josh-tx/regionstats#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.14.2",
+    "express-validator": "^3.1.1",
+    "mongodb": "^2.2.16",
+    "node-mysql": "^0.4.2",
+    "serve-favicon": "^2.3.2"
+  }
+}

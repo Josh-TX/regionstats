@@ -1,0 +1,10 @@
+body{
+	margin: 0;
+	
+}
+
+#bar{
+	height: 50px;
+	background-color: #f4f4f4;
+	border: 1px solid #ebebeb;
+}
