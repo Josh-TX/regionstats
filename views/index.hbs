@@ -21,30 +21,6 @@
 {{makeLink "Signup page" "signup"}}
 <br>
 <br>
-{{makeLink "View users in mysql server" "users"}}
-
-<h1>old code</h1>
-<p>I'm keeping it around so that it'll be easier to remember how to do stuff</p>
-<p>This code attempts to modify the mongo database, whereas my working code modifys the mysql database</p>
-<h3>insert new user</h3>
-<form action="/insert" method="post">
-	<input type="text" name="username" placeholder="username"></input>
-	<input type="text" name="email" placeholder="email"></input>
-	<input type="password" name="password" placeholder="password"></input>
-	<input type="password" name="confirm" placeholder="confirm password"></input>
-	<input type="submit" value="insert"></input>
-</form>
-<h3>update existing user</h3>
-<form action="/update" method="post">
-<input type="text" name="oldname" placeholder="oldname"></input>
-	<input type="text" name="username" placeholder="username"></input>
-	<input type="text" name="email" placeholder="email"></input>
-	<input type="password" name="password" placeholder="password"></input>
-	<input type="password" name="confirm" placeholder="confirm password"></input>
-	<input type="submit" value="update"></input>
-</form>
-<h3>delete user</h3>
-<form action="/delete" method="post">
-	<input type="text" name="oldname" placeholder="username"></input>
-	<input type="submit" value="delete"></input>
-</form>
+{{makeLink "View users in mysql server" "mysql"}}
+<br>
+{{makeLink "View users in mongodb server" "mongo"}}

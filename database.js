@@ -1,16 +1,16 @@
-function getMongo(config){
+function getMongo(config, database){
 	var mongo = require('mongodb');
 	if (config.mongo.host.endsWith("/")) {
 		var url = "mongodb://" + config.mongo.host + config.mongo.db;
 	} else {
 		var url = "mongodb://" + config.mongo.host + "/" + config.mongo.db;
 	}
-	mongo.connect(url, function(err, db){
+	return mongo.connect(url, function(err, db){
 		if (err){
 			console.log("Could not connect to mongodb server");
 			throw err;
 		}
-		return db;
+		database.mongo = db;
 	});
 }
 function getMysql(config){
