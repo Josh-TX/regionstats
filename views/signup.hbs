@@ -1,0 +1,60 @@
+{{#section 'styles'}}
+	input{
+		display: block;
+	}
+{{/section}}
+
+{{>navigation_bar}}
+
+{{makeLink "homepage" "../"}}
+
+<h1>Create Account</h1>
+
+<form ng-controller="signup" ng-submit="submitForm()">
+	<label>username</label>
+	<input type="text" name="username" ng-model="form.username"></input>
+	<span ng-bind="error.username"></span>
+	<br>
+	<label>email</label>
+	<input type="text" name="email" ng-model="form.email"></input>
+	<span ng-bind="error.email"></span>
+	<br>
+	<label>password</label>
+	<input type="password" name="password" ng-model="form.password"></input>
+	<span ng-bind="error.password"></span>
+	<br>
+	<label>confirm password</label>
+	<input type="password" name="confirm" ng-model="form.confirm"></input>
+	<span ng-bind="error.confirm"></span>
+	<br>
+	<input type="submit" value="Submit"></input>
+</form>
+
+
+
+{{#section 'scripts'}}
+
+<script type="application/javascript">
+    var app = angular.module("myApp", []);
+
+	app.controller("signup", function($http, $scope){
+		$scope.form = {};
+		$scope.submitForm = function(){
+			$scope.error = validate($scope.form);
+			if ($scope.error.none)
+				$http.post('/signup', $scope.form).then(successCallback, errorCallback);
+		}
+		
+		function successCallback(response){
+			alert(response.data);
+		}
+		
+		function errorCallback(response){
+			alert(response.data);
+		}
+		{{{getValidator "signup"}}}
+	});
+	
+</script>
+
+{{/section}}

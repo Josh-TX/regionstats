@@ -2,12 +2,20 @@
 <html lang="eb">
 <head>
 	<meta charset="UTF-8">
-	<title>{{ title }}</title>
+	{{# if title }}
+		<title>{{ title }}</title>
+	{{else}}
+		<title>No title specified</title>
+	{{/if}}
 	<link rel="stylesheet" href="/content/css/main.css">
+	<style>
+		{{{_sections.styles}}}
+	</style>
 </head>
-<body>
-	<div id="bar"><span>RegionStats</span></div>
+<body ng-app="myApp">
 	{{{ body }}}
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	{{{_sections.scripts}}}
 </html>
 	
