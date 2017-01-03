@@ -1,17 +1,17 @@
-To-do list: for branch development
+#To-do list: for branch development
 	upload regions (to SQL)
 	verify login/signup works all the time
 	edit your own regions
 	admins can approve/edit other people's region submissions
-		-save changes
-		-approve
-		-reject
-		-delete
+		*save changes
+		*approve
+		*reject
+		*delete
 	Submission trail:
-		-user uploads data into sub_{table name}
-		-submissions table gets updated with a new row with the submission id, status = [pending=p, approved=a, rejected=r], type = [region=r, source=s, data=d]
-		-users can edit their submission
-		-admin approves or rejects upload (notes required for rejection, optional for approval)
+		*user uploads data into sub_{table name}
+		*submissions table gets updated with a new row with the submission id, status = [pending=p, approved=a, rejected=r], type = [region=r, source=s, data=d]
+		*users can edit their submission
+		*admin approves or rejects upload (notes required for rejection, optional for approval)
 	Make the website pretty
 	Make the root page be able to browse the region list (like a slide-in modal/sidebar)
 	
