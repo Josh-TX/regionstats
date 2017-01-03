@@ -74,6 +74,16 @@ function getRouter(router, database){
 	
 	var signupValidator = require('../validators/signup');
 	router.post('/signup', function(req, res, next){
+		getSignupPromise(req.body)
+			.then(function(obj){
+				req.session.userid = obj.userid;
+				req.session.username = obj.username;
+				res.send({redirect: true})
+			})
+			.catch(function(value){
+				res.send(value);
+			});
+		/*
 		var error = signupValidator(req.body);
 		if (error.none){
 			//if (req.body.db == "mysql"){
@@ -86,7 +96,7 @@ function getRouter(router, database){
 						res.send("mysql error: " + err.message);
 					}
 				});
-			/*} else { //mongodb
+			} else { //mongodb
 				var item={
 					username: req.body.username,
 					email: req.body.email,
@@ -99,14 +109,20 @@ function getRouter(router, database){
 						res.send("mongo error: " + err.message);
 					}
 				});
-			}*/
+			}
 		}else {
 			res.send("Client side validation failed: " + JSON.stringify(error));
 		}
+		*/
 	});
 
 	var loginValidator = require('../validators/login');
 	router.post('/login', function(req, res, next){
+		//good luck!
+		
+		
+		return;
+		/*
 		var error = loginValidator(req.body);
 		if (error.none){
 			//if (req.body.db == "mysql"){
@@ -125,22 +141,23 @@ function getRouter(router, database){
 							res.send("mysql error: " + err.message);
 						}
 					});
-			} /*else { //mongodb
+			} else { //mongodb
 				var item={
 					username: req.body.username,
 					password: req.body.password
 				}
-				/*database.mongo.collection('users').find({$and [{username: { $eq: item.username }}, {password: { $eq: item.password }}]}, function(err, result){
+				database.mongo.collection('users').find({$and [{username: { $eq: item.username }}, {password: { $eq: item.password }}]}, function(err, result){
 					if (!err){
 							res.send("mongo success!");
 					}else{
 						res.send("mongo error: " + err.message);
 					}
-				});*/
-			}*/
+				});
+			}
 		}else {
 			res.send("Client side validation failed: " + JSON.stringify(error));
 		}
+		*/
 	});
 	//old code from tutorial
 	/*router.post('/delete', function(req, res, next){
@@ -155,8 +172,43 @@ function getRouter(router, database){
 		});
 		res.redirect('/users');
 	});*/
+	
+	function getSignupPromise(body){
+	console.log(typeof body);
+	return new Promise (function(resolve, reject){
+		//console.log("resolving")
+		//resolve("testing");
+		//return;
+		var error = signupValidator(body);
+		if (error.none){
+			database.mysql.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', 
+				[body.username, body.email, body.password], databaseHandler);
+		}
+		else {
+			reject("Client side validation failed: " + JSON.stringify(error));
+		}
+
+		function databaseHandler(err, result) {
+			console.log("databaseHandler")
+			if (!err){
+				resolve({
+					userid: 1,
+					username: body.username
+				});
+			}else{
+				reject("mysql error: " + err.message);
+			}
+		};
+	});
+}
+	
+	
+	
+	
 	return router;
 }
+
+
 
 
 module.exports = {
