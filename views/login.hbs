@@ -40,19 +40,16 @@
 			$scope.error = loginValidate($scope.form);
 			if ($scope.error.none) {
 				$http.post('/login', $scope.form).then(successCallback, errorCallback);
-				window.location.href = ('/dashboard');
 			}
 		}
 		
 		function successCallback(response){
-			//alert(JSON.stringify(response));
-			alert(response.data.firstMessage);
-			alert(response.data.secondMessage);
-
+			alert(JSON.stringify(response));
+			window.location.href = ('/dashboard');
 		}
 		
 		function errorCallback(response){
-			alert(response.data);
+			alert(response);
 		}
 		{{{getValidator "login"}}}
 	});

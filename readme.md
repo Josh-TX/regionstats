@@ -1,4 +1,4 @@
-#To-do list: for branch development
+To-do list: for branch development
 	upload regions (to SQL)
 	verify login/signup works all the time
 	edit your own regions
