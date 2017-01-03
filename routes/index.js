@@ -92,6 +92,7 @@ function getRouter(router, database){
 				res.send({redirect: true})
 			})
 			.catch(function(value){
+				//res.status(400);
 				res.send(value);
 		});
 		
@@ -137,25 +138,36 @@ function getRouter(router, database){
 		var loginValidator = require('../validators/login');
 		return new Promise(function(resolve, reject){
 			var error = loginValidator(body);
+			//console.log(error.none);
 			if (error.none) {
+				//console.log("starting query...");
 				database.mysql.query('SELECT * FROM users WHERE username=(?) AND password=(?)', 
-					[req.body.username, req.body.password], databaseHandler); 
+					[body.username, body.password], databaseHandler);
+				//console.log("query complete");
 			}
 			else {
+				//console.log("validation failed");
 				reject("Client validation failed: " + JSON.stringify(error));
 			}
 
 			function databaseHandler(err, result) {
+				//console.log("inside databaseHandler");
 				if (!err) {
-					if (result.length > 0)
+					//console.log("database successful");
+					if (result.length > 0) {
+						//console.log("ready to resolve");
 						resolve({
 							userid: result[0].id,
 							username: result[0].username
-						})
-					else
+						});
+					}
+					else {
+						//console.log("no matches found");
 						reject("no match found");
+					}
 				}
 				else {
+					//console.log("error connecting to database");
 					reject("mysql error: " + err.message);
 				}
 			}
