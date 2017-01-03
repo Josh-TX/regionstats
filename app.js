@@ -43,7 +43,15 @@ function getApp(config, database){
 	app.use(expressSession({secret: 'idk', saveUninitialized: false, resave: false})) 
 
 	//***** Routes *****
-
+	app.use(function(req, res, next){
+		res.locals.test = "hello world";
+		if (!req.session.userid > 0)
+			req.session.userid = 0;
+		res.locals.session = {}
+		res.locals.session.userid = req.session.userid;
+		res.locals.session.username = req.session.username;
+		next();
+	});
 	//this allows caching anything in the content folder
 	app.use('/content', express.static(path.join(__dirname, 'content')));
 	app.use(indexRouter); // equivalent to app.use('/', indexRouter);

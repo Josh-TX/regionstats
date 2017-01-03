@@ -1,24 +1,12 @@
+{{>navigation_bar}}
 
-<!--
-<h3>testing conditionals</h3>
-{{# if success }}
-	<p>succesful validation!</p>
-{{else}}
-	{{# if errors }}
-		<ul>
-			{{# each errors}}
-				<li> {{ this.msg }} </li>
-			{{/each}}
-		</ul>
-	{{/if}}
+{{#if req.session.userid }}
+	<h1>Welcome, {{ req.session.user }}</h1>
 {{/if}}
 
-<h3>testing each</h3>
-{{# each myArray as |val key|}}
-<p>val = {{val}}, key = {{key}}</p>
-{{/each}}
--->
 {{makeLink "Signup page" "signup"}}
+<br>
+{{makeLink "Login page" "login"}}
 <br>
 <br>
 {{makeLink "View users in mysql server" "mysql"}}

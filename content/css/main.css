@@ -4,7 +4,12 @@ body{
 }
 
 #bar{
-	height: 50px;
-	background-color: #f4f4f4;
-	border: 1px solid #ebebeb;
+    position: relative;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #F8F8F8;
+    border-bottom: 1px solid #DDD;
+}
 }

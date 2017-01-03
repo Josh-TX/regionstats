@@ -1,4 +1,4 @@
-var validate = (function(){
+var signupValidate = (function(){
 	function checkUsername(username){
 		if (!username){
 			return "enter a username";
@@ -57,4 +57,4 @@ var validate = (function(){
 })();
 
 if (typeof module == "object")
-	module.exports = validate
+	module.exports = signupValidate
