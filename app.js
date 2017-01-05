@@ -1,23 +1,19 @@
 function getApp(config, database){
+	//there's more requires in their corresponding section.
+	//I think it's more organized that way. 
 	var express = require('express');
 	var path = require('path');
 	var favicon = require('serve-favicon');
-	var hbs = require('express-handlebars');
-	var helpers = require('./helpers');
 	var bodyParser = require('body-parser');
-	//var expressValidator = require('express-validator');
 	var expressSession = require('express-session');
-
-	var ajax = require('./routes/ajax');
-	
-	var router = express.Router();
-	var indexRouter = require('./routes/index').getRouter(router, database);
 	
 	var app = express();
 
 
 	//***** View Engine *****
 
+	var hbs = require('express-handlebars');
+	var helpers = require('./helpers');
 	//set the engine to handlebars, the extension to hbs, and layout file to layout
 	app.engine('hbs', hbs({
 		extname: 'hbs', 
@@ -31,20 +27,20 @@ function getApp(config, database){
 	//this might be unnecessary
 	app.set('view engine', 'hbs');
 
+	
+	
 	//***** Middleware *****
 
 	app.use(favicon(path.join(__dirname, 'content', 'favicon.ico')));
 	//this parses the post requests
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: false}));
-	//app.use(expressValidator());//this line must be after I use bodyparser
 	//app.use(cookieParser()); probably will need this later
-	//the secret should be a random string stored in a gitignored folder
+	
+	//***** Session variables *****
+	
 	app.use(expressSession({secret: 'idk', saveUninitialized: false, resave: false})) 
-
-	//***** Routes *****
 	app.use(function(req, res, next){
-		res.locals.test = "hello world";
 		if (!req.session.userid > 0)
 			req.session.userid = 0;
 		res.locals.session = {}
@@ -52,13 +48,27 @@ function getApp(config, database){
 		res.locals.session.username = req.session.username;
 		next();
 	});
+	
+	
+	
+	//***** Routes *****
+	
+	var router = express.Router();
 	//this allows caching anything in the content folder
 	app.use('/content', express.static(path.join(__dirname, 'content')));
-	app.use(indexRouter); // equivalent to app.use('/', indexRouter);
-	app.use('/ajax', ajax);
+	
+	var indexRouter = require('./routes/index').getRouter(router, database);
+	app.use(indexRouter);
+	
+	var regionRouter = require('./routes/region').getRouter(router, database);
+	app.use(regionRouter);
+	
+	
 
-	// ***** Errors
-
+	
+	
+	// ***** Error handling *****
+	
 	app.use(function(req, res, next){
 		res.locals.test = app.get('env')
 		next();
