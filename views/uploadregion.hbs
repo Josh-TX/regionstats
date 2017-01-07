@@ -1,52 +1,54 @@
 {{#section 'styles'}}
-	#modal-overlay {
-		position: fixed;
-		z-index:100;
-		top: 0px;
-		left: 0px;
-		height:100%;
-		width:100%;
-		background: #000;
-		display: none;
-	}
-	#modal-container{
-		background-color: white;
-		border-radius: 5px 5px 5px 5px;
-		padding: 5px;
-		box-shadow: 0px 0px 5px black;
-		display: none;
-		position: fixed;
-		width: 90%;
-		max-width: 700px;
-		top: 10%;
-		right: 0;
-		left: 0;
-		bottom: 10%;
-		margin-right: auto;
-		margin-left: auto;
-		z-index: 11000;
-		overflow-y: scroll;
-	}
 {{/section}}
-
-	<div ng-controller="uploadRegion" ng-submit="submitForm()">
+	{{>navigation_bar}}
+	<div class="container" ng-controller="uploadRegion" ng-submit="submitForm()">
+		<h1>Upload Region</h1>
 		<form enctype="multipart/form-data" accept-charset="UTF-8">
-			<input type="file" file-reader="form.data"></input>
-			<span ng-bind="error.file"></span>
-			<input type="submit" value="submit"></input>
+			<div class="row">
+				<div class="col-sm-3">
+					<button class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Parent Region</button>
+				</div>
+				<div class="col-sm-9">
+					<input type="text" class="form-control" ng-model="regionModal.name" disabled></input>
+				</div>
+			</div>
+			<div class="row top-buffer">
+				<div class="col-sm-3">
+					<button class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Region Type</button>
+				</div>
+				<div class="col-sm-9">
+					<input type="text" class="form-control" ng-model="typeModal.name" disabled></input>
+				</div>
+			</div>
+			<div class="row top-buffer">
+				<div class="col-sm-9 col-sm-offset-3">
+					<input type="file" file-reader="form.data"></input>
+				</div>
+			</div>
+			<input class="btn btn-primary btn-lg pull-right" type="submit" value="submit"></input>
 		</form>
-		
-		Preview:
-		<table>
-			<tr>
-				<th ng-bind="form.type"></th>
-			</tr>
-			<tr ng-repeat="region in form.data track by $index">
-				<td>{{ng "region"}}</td>
-			</tr>
-		</table>
-		<div id="modal-overlay" ng-click="showAlert()"></div>
-	</div>
+		<div ng-if="form.data.length > 0">
+			<h2>preview</h2>
+			<table>
+				<tr>
+					<th ng-bind="typeModal.name"></th>
+				</tr>
+				<tr ng-repeat="region in form.data track by $index">
+					<td ng-bind="region"></td>
+				</tr>
+			</table>
+		</div>
+		<!-- modal -->
+		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.select()">
+			<h2 class="top-no-buffer"><small ng-bind="regionModal.stack[regionModal.stack.length - 1].name"></small></h2>
+			<input type="text" class="form-control" placeholder="filter"></input>
+			<hr>
+			
+		</div>
+		<div modal="typeModal.show" str="typeModal.title">
+			<button class="btn btn-default" ng-repeat="(id, name) in typeModal.types" ng-click="typeModal.select(id)">{{ng "name"}}</button>
+		</div>
+	</div><!-- end container -->
 	
 {{#section 'scripts'}}
 
@@ -54,10 +56,38 @@
     var app = angular.module("myApp", []);
 
 	app.controller("uploadRegion", function($http, $scope){
-		$scope.regionModal = false;
+		$scope.regionModal = {}
+		$scope.regionModal.stack = [{id: 0, name: "World"}];
+		$scope.regionModal.show = false;
+		$scope.regionModal.title = "Select Parent Region";
+		
+		$scope.regionModal.name = "not selected";
+		$scope.regionModal.select = function(){
+			var region = $scope.regionModal.stack[$scope.regionModal.stack.length - 1];
+			$scope.regionModal.name = region.name;
+			$scope.form.parent = region.id;
+		}
+		
+		
+		$scope.typeModal = {}
+		$scope.typeModal.types = {
+			"1": "Country",
+			"2": "City",
+			"3": "State"
+		}
+		$scope.typeModal.show = false;
+		$scope.typeModal.title = "Select Region Type";
+		$scope.typeModal.name = "not selected";
+		$scope.typeModal.select = function(id){
+			$scope.typeModal.name = this.types[id];
+			$scope.form.type = id;
+			$scope.typeModal.show = false;
+		}
+		
 		$scope.form = {};
 		$scope.form.data = [];
-		$scope.form.type = "Country"
+		$scope.form.parent = "-1"; //temporary
+		$scope.form.type = "";
 		$scope.submitForm = function(){
 			$scope.form.data.map(titleCase);
 			$scope.error = uploadRegionValidate($scope.form);
@@ -73,7 +103,6 @@
 		function errorCallback(response){
 			alert(response.data);
 		}
-		{{{getValidator "titleCase"}}}
 		{{{getValidator "uploadregion"}}}
 	});
 	
@@ -101,5 +130,7 @@
 	});
 	
 </script>
+<script src="/content/js/titlecase.js"></script>
+<script src="/content/js/modal.js"></script>
 
 {{/section}}

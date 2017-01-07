@@ -1,0 +1,18 @@
+<div class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close"  ng-click="show=false" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h3 class="modal-title" id="myModalLabel">{{title}}</h3>
+			</div>
+			<div class="modal-body">
+				<ng-transclude></ng-transclude>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" ng-click="show=false">Close</button>
+				<button type="button" class="btn btn-primary" ng-if="callback" ng-click="callback(); $parent.show=false">Submit</button>
+			</div>
+		</div>
+	</div>
+	<div class="modal-backdrop" ng-click="show=false"></div>
+</div>
