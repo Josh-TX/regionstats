@@ -10,7 +10,14 @@
 		</g>
 	</svg>
 </a></li>
-<li style="float: right;">
-	<a href="../dashboard" style="padding: 10px;">dashboard</a>
+
+	{{#if session.userid}}
+		<li style="float: right; padding-right: 10px; font-size: 24px;" >{{makeLink "Logout" "/logout"}}</li>
+		<li style="float: right; padding-right: 10px; font-size: 24px;" >{{makeLink "Dashboard" "/dashboard"}}</li>
+	{{else}}
+		<li style="float: right; padding-right: 10px; font-size: 24px;" >{{makeLink "Log In" "/login"}}</li>
+		<li style="float: right; padding-right: 10px; font-size: 24px;" >{{makeLink "Sign Up" "/signup"}}</li>
+	{{/if}}
 </li>
 </ul>
+
