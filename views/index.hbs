@@ -1,14 +1,130 @@
 {{>navigation_bar}}
 
-{{#if req.session.userid }}
-	<h1>Welcome, {{ req.session.user }}</h1>
+{{#if session.userid }}
+	<h1>Welcome, {{ session.username }}</h1>
 {{/if}}
 
-<!--{{makeLink "Signup page" "signup"}}
 <br>
-{{makeLink "Login page" "login"}}
-<br>
-<br>-->
-{{makeLink " View users in mysql server" "mysql"}}
-<br>
-{{makeLink " View users in mongodb server" "mongo"}}
+<p style="padding-left: 10px;">{{makeLink " View users in mysql server" "mysql"}}</p>
+<!--<p style="padding-left: 10px;">{{makeLink " View users in mongodb server" "mongo"}}</p>-->
+
+<div ng-app="myApp" style="padding-left: 10px;" ng-controller="viewRegions">
+<button ng-click="test()">test</button>
+	<button ng-click="back()" ng-if="regionList[id].parent != -1">back</button>
+	<h1>List of Regions in {{ ng "regionList[id].name" }}</h3>
+	<p ng-repeat="data in regionList[id].r"><button type="submit" ng-click="select(data.id)">{{ng "data.name"}}</button></p>
+	<p ng-if="regionList[id].r.length == 0">No Sub-Regions Found!</p>
+</div>
+
+{{#section 'scripts'}}
+
+<script type="application/javascript">
+var app = angular.module('myApp', []);
+
+app.factory('regionService', function($http) {
+	var id = 1;
+
+	$http.post('/ajax/region', {id: id}).then(successCallback, errorCallback);
+
+	regionList = {}
+
+	//$scope.regionRequest = [];
+
+	var select = function(new_id){
+		id = new_id;
+		console.log(id);
+		getRegion(id);
+	}
+
+	var back = function() {
+		id = regionList[id].parent;
+		getRegion(id);
+	}
+
+	function getRegion(id)
+	{
+		if (!regionList[id]){
+			console.log("getting region from server");	
+			$http.post('/ajax/region', {id: id}).then(successCallback, errorCallback);
+		}
+		//the id has not been requested before, so do an SQL query and put it in regionList
+	}
+
+	function successCallback(response)
+	{
+		//alert(response);
+		//console.log(response);
+		regionList[id] = response.data;
+		
+	}
+
+	function errorCallback(response)
+	{
+		//alert(response);
+		console.log(response);
+	}
+	return {
+		id: id,
+		select: select,
+		back: back,
+		regionList: regionList
+	}
+})
+
+app.controller("viewRegions", function($scope, $http, regionService) {
+
+	/*$scope.id = regionService.id;
+	$scope.regionList = regionService.regionList;
+	$scope.back = regionService.back;
+	$scope.select = regionService.select;
+
+	$scope.test = function(){
+		alert($scope.id + " : " + regionService.id);
+	}*/
+	
+	$scope.id = 1;
+
+	$http.post('/ajax/region', {id: $scope.id}).then(successCallback, errorCallback);
+
+	$scope.regionList = {}
+
+	$scope.regionRequest = [];
+
+	$scope.select = function(id){
+		$scope.id = id;
+		//console.log(id);
+		getRegion(id);
+	}
+
+	$scope.back = function() {
+		$scope.id = $scope.regionList[$scope.id].parent;
+		getRegion($scope.id);
+	}
+
+	function getRegion(id)
+	{
+		if (!$scope.regionList[id]){
+			console.log("getting region from server");	
+			$http.post('/ajax/region', {id: $scope.id}).then(successCallback, errorCallback);
+		}
+		//the id has not been requested before, so do an SQL query and put it in regionList
+	}
+
+	function successCallback(response)
+	{
+		//alert(response);
+		//console.log(response);
+		$scope.regionList[$scope.id] = response.data;
+		
+	}
+
+	function errorCallback(response)
+	{
+		//alert(response);
+		console.log(response);
+	}
+	
+})
+
+</script>
+{{/section}}

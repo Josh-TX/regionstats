@@ -10,6 +10,9 @@
 	<link rel="stylesheet" type="text/css"  href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/content/css/main.css">
 	<style>
+		[ng\:cloak], [ng-cloak], .ng-cloak {
+			display: none;
+		}
 		{{{_sections.styles}}}
 	</style>
 </head>
@@ -17,6 +20,9 @@
 	{{{ body }}}
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+<script>
+	var app = angular.module('myApp', []);
+</script>
 	{{{_sections.scripts}}}
 </html>
 	

@@ -62,6 +62,9 @@ function getApp(config, database){
 	
 	var regionRouter = require('./routes/region').getRouter(router, database);
 	app.use(regionRouter);
+
+	var ajaxRouter = require('./routes/ajax').getRouter(router, database);
+	app.use(ajaxRouter);
 	
 	
 

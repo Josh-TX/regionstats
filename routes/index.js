@@ -1,23 +1,5 @@
 function getRouter(router, database){
 	/* GET home page. */
-	router.get('/', function(req, res, next) {
-		global.counter++;
-		res.render('index', { 
-		title: 'Regionstats', 
-		//counter: counter,
-		//myArray: [1,2,3],//I'm just experimenting with outputing to the view
-		success: req.session.success,
-		errors: req.session.errors});
-		req.session.errors = null;
-	});
-
-	/*router.get('/getexample/:name/:id', function(req, res, next) {
-		//this is an example of how to get variables from the url
-		var name = req.params.name;
-		var id = req.params.id;
-		res.render('test', { title: 'Get example', name: name, id: id});
-	});*/
-
 	router.get('/mysql', function(req, res, next){
 		database.mysql.query('SELECT * from users', function(err, rows, fields) {
 			if (err){
@@ -28,30 +10,20 @@ function getRouter(router, database){
 
 		});
 	});
-	
-	router.get('/mongo', function(req, res, next){
-		var users = [];
-		var rdr = database.mongo.collection('users').find();
-		rdr.forEach(pushUser, finishedReading);
-		function pushUser(doc, err){
-			if (err){
-				throw error(err);
-			}
-			users.push(doc);
-		};
-		function finishedReading(){
-			res.render('users', {users: users});
-		};
+
+	router.get('/', function(req, res, next) {
+		res.render('index', { 
+			title: 'Regionstats'});
 	});
 
 	router.get('/signup', function(req, res, next){
-		res.render('signup');
+		res.render('signup', { 
+			title: 'Regionstats'});
 	});
 
 	router.get('/login', function(req, res, next){
-		res.render('login', {
-
-		});
+		res.render('login', { 
+		title: 'Regionstats'});
 	});
 
 	router.get('/logout', function(req, res,next){
@@ -67,7 +39,8 @@ function getRouter(router, database){
 			});
 		}
 		else {
-			res.redirect('login');
+			res.redirect('login', { 
+				title: 'Regionstats'});
 			//res.send(req.session.userid);
 		}
 	})
@@ -163,6 +136,22 @@ function getRouter(router, database){
 			};
 		});
 	}
+
+		/*router.get('/mongo', function(req, res, next){
+		var users = [];
+		var rdr = database.mongo.collection('users').find();
+		rdr.forEach(pushUser, finishedReading);
+		function pushUser(doc, err){
+			if (err){
+				throw error(err);
+			}
+			users.push(doc);
+		};
+		function finishedReading(){
+			res.render('users', {users: users});
+		};
+	});*/
+
 	return router;
 }
 
