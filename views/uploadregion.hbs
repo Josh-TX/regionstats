@@ -4,26 +4,36 @@
 	<div class="container" ng-controller="uploadRegion" ng-submit="submitForm()">
 		<h1>Upload Region</h1>
 		<form enctype="multipart/form-data" accept-charset="UTF-8">
-			<div class="row">
+			<div class="row top-buffer form-group" ng-class="{'has-error': error.parent}">
 				<div class="col-sm-3">
-					<button class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Parent Region</button>
+					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Parent Region</button>
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="regionModal.name" disabled></input>
+					<span class="help-block pull-right" ng-bind="error.parent"></span>
 				</div>
 			</div>
-			<div class="row top-buffer">
+			<div class="row top-buffer form-group" ng-class="{'has-error': error.type}">
 				<div class="col-sm-3">
-					<button class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Region Type</button>
+					<button type="button" class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Region Type</button>
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="typeModal.name" disabled></input>
+					<span class="help-block pull-right" ng-bind="error.type"></span>
 				</div>
 			</div>
-			<div class="row top-buffer">
-				<div class="col-sm-9 col-sm-offset-3">
-					<input type="file" file-reader="form.data"></input>
+			<div class="row top-buffer form-group" ng-class="{'has-error': error.data}">
+				<div class="col-sm-3">
+					<label class="btn btn-primary btn-block">
+						Select File 
+						<input type="file" class="hidden" file-reader="form.data" file-name="fileName">
+					</label>
 				</div>
+				<div class="col-sm-9">
+					<input type="text" class="form-control" ng-model="fileName" disabled></input>
+					<span class="help-block pull-right" ng-bind="error.data"></span>
+				</div>
+				
 			</div>
 			<input class="btn btn-primary btn-lg pull-right" type="submit" value="submit"></input>
 		</form>
@@ -85,52 +95,28 @@
 		}
 		
 		$scope.form = {};
+		$scope.fileName = "not selected";
 		$scope.form.data = [];
-		$scope.form.parent = "-1"; //temporary
-		$scope.form.type = "";
+
 		$scope.submitForm = function(){
 			$scope.form.data.map(titleCase);
 			$scope.error = uploadRegionValidate($scope.form);
-			return;
 			if ($scope.error.none)
 				$http.post('/region/upload', $scope.form).then(successCallback, errorCallback);
 		}
 		
 		function successCallback(response){
-			alert(response.data);
+			alert("data successfully added!");
 		}
 		
 		function errorCallback(response){
-			alert(response.data);
-		}
-		{{{getValidator "uploadregion"}}}
-	});
-	
-	
-	app.directive("fileReader", function(){
-		function link(scope, element, attr){
-			element.on("change", function(e){
-				var file = e.target.files[0];
-				var reader = new FileReader();
-				reader.onload = function(e){
-					scope.$apply(function(){
-						scope.data = e.target.result.split("\n")
-					});
-				}
-				reader.readAsText(file);
-			})
-		}
-		return {
-			restrict: "A",
-			scope: {
-				data: "=fileReader",
-			},
-			link: link
+			alert(response.data.message);
 		}
 	});
-	
 </script>
-<script src="/content/js/titlecase.js"></script>
+<script src="/content/js/filereader.js"></script>
 <script src="/content/js/modal.js"></script>
+<script src="/content/js/titlecase.js"></script>
+<script src="/content/validators/regionupload.js"></script>
 
 {{/section}}

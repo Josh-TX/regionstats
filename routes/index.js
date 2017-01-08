@@ -81,8 +81,8 @@ function getRouter(router, database){
 				req.session.username = obj.username;
 				res.send({redirect: true})
 			})
-			.catch(function(value){
-				res.send(value);
+			.catch(function(obj){
+				res.send(obj);
 			});
 	});
 
@@ -94,8 +94,8 @@ function getRouter(router, database){
 				req.session.username = obj.username;
 				res.send({redirect: true})
 			})
-			.catch(function(value){
-				res.send(value);
+			.catch(function(obj){
+				res.send(obj);
 			});
 	});
 	
@@ -157,7 +157,7 @@ function getRouter(router, database){
 					return;
 				}
 				resolve({
-					userid: 1,
+					userid: result.insertId,
 					username: body.username
 				});
 			};

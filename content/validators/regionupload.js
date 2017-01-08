@@ -1,6 +1,6 @@
 var uploadRegionValidate = (function(){
-	function checkFile(arr){
-		if (!arr){
+	function checkData(arr){
+		if (typeof arr != "object" || arr.length === 0){
 			return "select a file";
 		}
 		arr.sort()
@@ -13,32 +13,34 @@ var uploadRegionValidate = (function(){
 			if (/\uFFFD/.test(arr[i])){
 				return "Invalid unicode characters in file";
 			}
-			if (arr[i].length > 32){
-				return 'region "' + arr[i].substr + '" too long (limit 32 characters)';
+			if (arr[i].length > 40){
+				return 'region "' + arr[i].substr(0, 40) + '..." too long (limit 32 characters)';
 			}
 		}
 		return "";
 	}
 	function checkParent(num){
-		if (!num){
+		if (typeof num == "undefined"){
 			return "select a parent region";
 		}
-		if (/\d/.test(num)){
+		if (!/\d/.test(num)){
 			return "invalid region id";
 		}
+		return "";
 	}
 	function checkType(num){
-		if (!num){
+		if (typeof num == "undefined"){
 			return "select a region type";
 		}
-		if (/\d/.test(num)){
+		if (!/\d/.test(num)){
 			return "invalid region type id";
 		}
+		return "";
 	}
 
 	function validate(obj){
 		var error = {};
-		error.file = checkFile(obj.data);
+		error.data = checkData(obj.data);
 		error.parent = checkParent(obj.parent);
 		error.type = checkType(obj.type);
 		error.none = !error.encoding && !error.parent && !error.type;
