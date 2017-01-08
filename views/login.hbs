@@ -5,25 +5,33 @@
 {{/section}}
 
 {{>navigation_bar}}
-<br>
-{{makeLink "mysql database" "/mysql"}}
-<br>
-{{makeLink "mongo database" "/mongo"}}
-
-<h1>Login to Account</h1>
-
-<form ng-controller="signup" ng-submit="submitForm()">
-	<label>username</label>
-	<input type="text" name="username" ng-model="form.username"></input>
-	<span ng-bind="error.username"></span>
+<div class="container" ng-controller="signup" ng-submit="submitForm()">
 	<br>
-	<label>password</label>
-	<input type="password" name="password" ng-model="form.password"></input>
-	<span ng-bind="error.password"></span>
+	{{makeLink "mysql database" "/mysql"}}
 	<br>
-	<input type="submit" value="Login"></input>
-</form>
+	{{makeLink "mongo database" "/mongo"}}
 
+
+	<div class="row">
+		<div class="col-sm-6 col-sm-offset-3">
+			<h1>Login to Account</h1>
+			<form ng-submit="submitForm()">
+				<div ng-class="{'form-group': true, 'has-error': error.username}">
+					<label class="control-label">username</label>
+					<input type="text" class="form-control" ng-model="form.username"></input>
+					<span class="help-block pull-right" ng-bind="error.username"></span>
+				</div>
+				<div ng-class="{'form-group': true, 'has-error': error.password}">
+					<label class="control-label">password</label>
+					<input type="password" class="form-control" ng-model="form.password"></input>
+					<span class="help-block pull-right" ng-bind="error.password"></span>
+				</div>
+				<input type="submit" class="btn btn-primary" value="Login"></input>
+			</form>
+		</div>
+	</div>
+
+</div>
 {{#section 'scripts'}}
 
 <script type="application/javascript">
@@ -33,30 +41,27 @@
 		//alert("In login controller!");
 		$scope.form = {};
 		$scope.submitForm = function(){
-			//alert("Submitting form!");
 			$scope.error = loginValidate($scope.form);
 			if ($scope.error.none) {
 				$http.post('/login', $scope.form).then(successCallback, errorCallback);
 			}
 		}
-		
 		function successCallback(response){
-			//alert("redirect: " + JSON.stringify(response));
 			if (response.data.redirect){
 				window.location.href = ('/dashboard');
 			}
+			else if (response.data.password) {
+				$scope.form.password = response.data.password;
+			}
 			else {
-				alert("Invalid login credentials!");
+				$scope.form.password = response.data.message;
 			}
 		}
-		
 		function errorCallback(response){
-			alert("Error!");
-			alert(response);
+			$scope.form.password = "error connecting to server";
 		}
-		{{{getValidator "login"}}}
 	});
 	
 </script>
-
+<script src="/content/validators/login.js"></script>
 {{/section}}

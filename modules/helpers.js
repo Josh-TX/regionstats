@@ -12,10 +12,6 @@ helpers.ng = function(text){
 	return "{{" + text + "}}"
 }
 
-helpers.getValidator = function(filename){
-	return readFileSync(__dirname + '/../validators/' + filename + ".js");
-}
-
 helpers.section = function(name, options){ 
 	if(!this._sections) 
 		this._sections = {};

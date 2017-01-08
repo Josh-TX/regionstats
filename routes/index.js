@@ -74,6 +74,7 @@ function getRouter(router, database){
 	
 	router.post('/signup', function(req, res, next){
 		validateObj.signup(req.body)
+			.then(checkExistingUser)
 			.then(insertUser)
 			.then(function(obj){
 				req.session.userid = obj.userid;
@@ -112,21 +113,37 @@ function getRouter(router, database){
 			database.mysql.query('SELECT * FROM users WHERE username=(?) AND password=(?)', 
 				[body.username, body.password], databaseHandler);
 			function databaseHandler(err, result) {
-				if (!err) {
-					if (result.length > 0) {
-						resolve({
-							userid: result[0].id,
-							username: result[0].username
-						});
-					}
-					else {
-						reject("no match found");
-					}
+				if (err) {
+					reject({message: "internal database error"});
+				}
+				if (result.length > 0) {
+					resolve({
+						userid: result[0].id,
+						username: result[0].username
+					});
 				}
 				else {
-					reject("mysql error: " + err.message);
+					reject({password: "wrong username/password"});
 				}
 			}
+		});
+	}
+	
+	function checkExistingUser(body){
+		return new Promise (function(resolve, reject){
+			database.mysql.query('SELECT * FROM users WHERE username=(?)', 
+				[body.username], databaseHandler);
+			function databaseHandler(err, result) {
+				if (err){
+					reject({message: "internal database error"});
+					return;
+				}
+				if (result.length > 0){
+					reject({username: "username already taken"});
+				}else {
+					resolve(body);
+				}
+			};
 		});
 	}
 
@@ -135,15 +152,14 @@ function getRouter(router, database){
 			database.mysql.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', 
 				[body.username, body.email, body.password], databaseHandler);
 			function databaseHandler(err, result) {
-				//console.log("databaseHandler")
-				if (!err){
-					resolve({
-						userid: 1,
-						username: body.username
-					});
-				}else{
-					reject("mysql error: " + err.message);
+				if (err){
+					reject({message: "internal database error"});
+					return;
 				}
+				resolve({
+					userid: 1,
+					username: body.username
+				});
 			};
 		});
 	}

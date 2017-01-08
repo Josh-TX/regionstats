@@ -5,37 +5,41 @@
 {{/section}}
 
 {{>navigation_bar}}
-
-{{makeLink "homepage" "../"}}
-<br>
-{{makeLink "mysql database" "/mysql"}}
-<br>
-{{makeLink "mongo database" "/mongo"}}
-
-<h1>Create Account</h1>
-
-<form ng-controller="signup" ng-submit="submitForm()">
-	<label>username</label>
-	<input type="text" name="username" ng-model="form.username"></input>
-	<span ng-bind="error.username"></span>
+<div class="container" ng-controller="signup" ng-submit="submitForm()">
+	{{makeLink "homepage" "../"}}
 	<br>
-	<label>email</label>
-	<input type="text" name="email" ng-model="form.email"></input>
-	<span ng-bind="error.email"></span>
+	{{makeLink "mysql database" "/mysql"}}
 	<br>
-	<label>password</label>
-	<input type="password" name="password" ng-model="form.password"></input>
-	<span ng-bind="error.password"></span>
-	<br>
-	<label>confirm password</label>
-	<input type="password" name="confirm" ng-model="form.confirm"></input>
-	<span ng-bind="error.confirm"></span>
-	<br>
-	<input type="submit" value="Submit"></input>
-</form>
-
-
-
+	{{makeLink "mongo database" "/mongo"}}
+	<div class="row">
+		<div class="col-sm-6 col-sm-offset-3">
+			<h1>Create Account</h1>
+			<form ng-controller="signup" ng-submit="submitForm()">
+				<div ng-class="{'form-group': true, 'has-error': error.username}">
+					<label class="control-label">username</label>
+					<input type="text" class="form-control" ng-model="form.username"></input>
+					<span class="help-block pull-right" ng-bind="error.username"></span>
+				</div>
+				<div ng-class="{'form-group': true, 'has-error': error.email}">
+					<label class="control-label">email</label>
+					<input type="text" class="form-control" ng-model="form.email"></input>
+					<span class="help-block pull-right" ng-bind="error.email"></span>
+				</div>
+				<div ng-class="{'form-group': true, 'has-error': error.password}">
+					<label class="control-label">password</label>
+					<input type="password" class="form-control" ng-model="form.password"></input>
+					<span class="help-block pull-right" ng-bind="error.password"></span>
+				</div>
+				<div ng-class="{'form-group': true, 'has-error': error.confirm}">
+					<label class="control-label">confirm password</label>
+					<input type="password" class="form-control" ng-model="form.confirm"></input>
+					<span class="help-block pull-right" ng-bind="error.confirm"></span>
+				</div>
+				<input type="submit" class="btn btn-primary" value="Submit"></input>
+			</form>
+		</div>
+	</div>
+</div>
 {{#section 'scripts'}}
 
 <script type="application/javascript">
@@ -54,15 +58,18 @@
 				window.location.href="/dashboard";
 				return;
 			}
-			alert(response.data);
+			else if (response.data.username){
+				$scope.error.username = response.data.username
+			} else {
+				$scope.error.confirm = response.data.message
+			}
 		}
 		
 		function errorCallback(response){
-			alert(response.data);
+			$scope.error.confirm = "error connecting to server";
 		}
-		{{{getValidator "signup"}}}
 	});
 	
 </script>
-
+<script src="/content/validators/signup.js"></script>
 {{/section}}
