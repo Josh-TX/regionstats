@@ -13,7 +13,7 @@ function getApp(config, database){
 	//***** View Engine *****
 
 	var hbs = require('express-handlebars');
-	var helpers = require('./helpers');
+	var helpers = require('./modules/helpers');
 	//set the engine to handlebars, the extension to hbs, and layout file to layout
 	app.engine('hbs', hbs({
 		extname: 'hbs', 

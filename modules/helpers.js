@@ -13,7 +13,7 @@ helpers.ng = function(text){
 }
 
 helpers.getValidator = function(filename){
-	return readFileSync(__dirname + '/validators/' + filename + ".js");
+	return readFileSync(__dirname + '/../validators/' + filename + ".js");
 }
 
 helpers.section = function(name, options){ 

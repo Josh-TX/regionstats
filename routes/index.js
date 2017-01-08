@@ -73,7 +73,8 @@ function getRouter(router, database){
 	})
 	
 	router.post('/signup', function(req, res, next){
-		getSignupPromise(req.body)
+		validateObj.signup(req.body)
+			.then(insertUser)
 			.then(function(obj){
 				req.session.userid = obj.userid;
 				req.session.username = obj.username;
@@ -85,108 +86,54 @@ function getRouter(router, database){
 	});
 
 	router.post('/login', function(req, res, next){
-		getLoginPromise(req.body)
+		validateObj.login(req.body)
+			.then(verifyUser)
 			.then(function(obj){
 				req.session.userid = obj.userid;
 				req.session.username = obj.username;
 				res.send({redirect: true})
 			})
 			.catch(function(value){
-				//res.status(400);
 				res.send(value);
-		});
-		
-		
-		return;
-		/*
-		var error = loginValidator(req.body);
-		if (error.none){
-			//if (req.body.db == "mysql"){
-				{
-						if (!err && result.length > 0){
-							var user = result[0].username;
-							req.session.username = user;
-							req.session.userid = JSON.stringify(result[0].id);
-							var messages = {}
-							messages.firstMessage = "login success!";
-							messages.secondMessage = " Welcome, " + user// + ": " + req.session.userid;
-							res.send(messages);
-						}else{
-							res.send("mysql error: " + err.message);
-						}
-					});
-			} else { //mongodb
-				var item={
-					username: req.body.username,
-					password: req.body.password
-				}
-				database.mongo.collection('users').find({$and [{username: { $eq: item.username }}, {password: { $eq: item.password }}]}, function(err, result){
-					if (!err){
-							res.send("mongo success!");
-					}else{
-						res.send("mongo error: " + err.message);
-					}
-				});
-			}
-		}else {
-			res.send("Client side validation failed: " + JSON.stringify(error));
-		}
-		*/
+			});
 	});
-
-	function getLoginPromise(body) {
-		var loginValidator = require('../validators/login');
+	
+	var validateObj = (function(){
+		var getValidator = require('../modules/getvalidator');
+		var validate = {};
+		validate.signup = getValidator("signup");
+		validate.login = getValidator("login");
+		return validate;
+	})();
+	
+	
+	function verifyUser(body){
 		return new Promise(function(resolve, reject){
-			var error = loginValidator(body);
-			//console.log(error.none);
-			if (error.none) {
-				//console.log("starting query...");
-				database.mysql.query('SELECT * FROM users WHERE username=(?) AND password=(?)', 
-					[body.username, body.password], databaseHandler);
-				//console.log("query complete");
-			}
-			else {
-				//console.log("validation failed");
-				reject("Client validation failed: " + JSON.stringify(error));
-			}
-
+			database.mysql.query('SELECT * FROM users WHERE username=(?) AND password=(?)', 
+				[body.username, body.password], databaseHandler);
 			function databaseHandler(err, result) {
-				//console.log("inside databaseHandler");
 				if (!err) {
-					//console.log("database successful");
 					if (result.length > 0) {
-						//console.log("ready to resolve");
 						resolve({
 							userid: result[0].id,
 							username: result[0].username
 						});
 					}
 					else {
-						//console.log("no matches found");
 						reject("no match found");
 					}
 				}
 				else {
-					//console.log("error connecting to database");
 					reject("mysql error: " + err.message);
 				}
 			}
 		});
 	}
 
-	
-	function getSignupPromise(body){
-		var signupValidator = require('../validators/signup');
+	function insertUser(body){
 		return new Promise (function(resolve, reject){
-			var error = signupValidator(body);
-			if (error.none){
-				database.mysql.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', 
-					[body.username, body.email, body.password], databaseHandler);
-			}
-			else {
-				reject("Client side validation failed: " + JSON.stringify(error));
-			}
-
+			database.mysql.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', 
+				[body.username, body.email, body.password], databaseHandler);
 			function databaseHandler(err, result) {
 				//console.log("databaseHandler")
 				if (!err){
