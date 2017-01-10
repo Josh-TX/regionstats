@@ -15,7 +15,7 @@ function getRouter(router, database){
 
 	
 	router.get('/region/upload', function(req, res, next) {
-		res.render('uploadregion');
+		res.render('regionupload');
 	});
 	
 	router.post('/region/upload', function(req, res, next) {
@@ -23,7 +23,8 @@ function getRouter(router, database){
 			.then(insertSubmission.bind(null, req.session.userid))
 			.then(insertSubRegions)
 			.then(function(){
-				res.send({redirect: true})
+				req.session.message = "region successfully uploaded!";
+				res.send({redirect: "/dashboard"})
 			})
 			.catch(function(obj){
 				res.send(obj)
@@ -33,8 +34,6 @@ function getRouter(router, database){
 	router.get('/region/edit/:subid', function(req, res, next) {
 		getSubmissionInfo(req.params)
 			.then(function(body){
-				console.log(typeof body.submission)
-				console.log("userid, admin, submitter_id", req.session.userid, req.session.admin, body.submission.user_id)
 				var permissions = getPermissions(req.session.userid, req.session.admin, body.submission.user_id);
 				if (!permissions.none){
 					res.render('regionedit', {
@@ -55,7 +54,6 @@ function getRouter(router, database){
 	router.post('/region/edit', function(req, res, next){
 		req.body.userid = req.session.userid;
 		req.body.admin =  req.session.admin;
-		console.log("req.session.admin" + req.session.admin + " : " + req.session.userid)
 		validateObj.upload(req.body)
 			.then(getSubmissionInfo)
 			.then(checkValidAction)
@@ -65,6 +63,7 @@ function getRouter(router, database){
 						.then(modifySubmission)
 						.then(insertSubRegions)
 						.then(function(){
+							req.session.message = "changes saved";
 							res.send({redirect: "/dashboard"})
 						})
 				}
@@ -72,27 +71,28 @@ function getRouter(router, database){
 					deleteSubRegions(body)
 						.then(deleteSubmission)
 						.then(function(){
+							req.session.message = "submission deleted";
 							res.send({redirect: "/dashboard"})
 						})
 				}
 				if (body.action == 'approve'){
-					console.log("action == approve")
 					markSubmission("a", body)
 						.then(insertRegions)
 						.then(function(){
+							req.session.message = "submission approved";
 							res.send({redirect: "/dashboard"})
 						})
 				}
 				if (body.action == 'reject'){
 					markSubmission("r", body)
 						.then(function(){
+							req.session.message = "submissin rejected";
 							res.send({redirect: "/dashboard"})
 						})
 				}
 				
 			})
 			.catch(function(err){
-				console.log(err.message);
 				res.send(err)
 			})
 	});
@@ -189,7 +189,6 @@ function getRouter(router, database){
 			throw Error("Submission is not waiting for approval");
 		}
 		var permissions = getPermissions(body.userid, body.admin, body.submission.user_id);
-		console.log(body.userid, body.action, body.admin, body.submission.user_id, typeof permissions[body.action])
 		if (permissions[body.action]){
 			return body;
 		}
@@ -218,7 +217,6 @@ function getRouter(router, database){
 	}
 	
 	function getSubmissionInfo(body){
-		console.log("body.subid = " + body.subid)
 		return new Promise(function(resolve, reject){	
 			if (!/\d+/.test(body.subid)){
 				reject({message: "invalid submission id"});

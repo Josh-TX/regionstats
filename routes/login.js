@@ -3,13 +3,13 @@ function getRouter(router, database){
 
 	router.get('/signup', function(req, res, next){
 		res.render('signup', { 
-			title: 'Regionstats'});
+			title: 'Regionstats'
+			});
 	});
 
 	router.get('/login', function(req, res, next){
 		res.render('login', { 
-			title: 'Regionstats',
-			message: req.session.message
+			title: 'Regionstats'
 		});
 	});
 
@@ -27,6 +27,7 @@ function getRouter(router, database){
 				req.session.userid = obj.userid;
 				req.session.username = obj.username;
 				req.session.admin = obj.admin;
+				req.session.message = "Account successfully created";
 				res.send({redirect: true})
 			})
 			.catch(function(obj){
@@ -41,6 +42,7 @@ function getRouter(router, database){
 				req.session.userid = obj.userid;
 				req.session.username = obj.username;
 				req.session.admin = obj.admin;
+				req.session.message = "successfully logged in";
 				res.send({redirect: true})
 			})
 			.catch(function(obj){
@@ -106,7 +108,6 @@ function getRouter(router, database){
 					reject({message: "internal database error: " + err.message});
 					return;
 				}
-				console.log("result.insertId: " + result.insertId);
 				resolve({
 					userid: result.insertId,
 					username: body.username,

@@ -17,7 +17,7 @@ function getRouter(router, database){
 		});
 	});
 	
-	
+	//***** check logged in ******
 	router.all("/dashboard", function(req, res, next) {
 		if (req.session.userid > 0){
 			next();

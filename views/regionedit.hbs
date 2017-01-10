@@ -165,8 +165,9 @@
 			else if (response.data.message){
 				alert(response.data.message)
 			}
-			console.log("data successfully added!");
-			console.log(response.data);
+			else {
+				alert("unknown response");
+			}
 		}
 		
 		function errorCallback(response){

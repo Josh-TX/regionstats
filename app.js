@@ -45,12 +45,10 @@ function getApp(config, database){
 			req.session.userid = 0;
 		res.locals.session = {}
 		res.locals.session.userid = req.session.userid;
-		res.locals.session.username = req.session.username;
-
-		
+		res.locals.session.username = req.session.username;		
 		if (req.session.message){
 			res.locals.session.message = req.session.message;
-			//delete req.session.message; //the message doesn't appear when I delete this ?????
+			delete req.session.message;
 		}
 		next();
 	});

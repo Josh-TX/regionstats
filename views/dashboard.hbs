@@ -5,8 +5,12 @@
 {{/section}}
 {{>navigation_bar}}
 <div class="container" ng-controller="dashboardCtrl">
+	{{#if session.message}}
+		<div class="alert alert-success" role="alert">
+			{{session.message}}
+		</div>
+	{{/if}}
 	<h1>dashboard</h1>
-	{{message}}
 	<hr>
 	<a class="btn btn-primary" href="/region/upload">Upload Regions</a>
 	<a class="btn btn-primary" href="/source/upload">Upload Source</a>
