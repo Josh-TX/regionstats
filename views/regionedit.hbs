@@ -1,0 +1,186 @@
+{{#section 'styles'}}
+{{/section}}
+	{{>navigation_bar}}
+	<div class="container" ng-controller="uploadRegion">
+		<h1>Region Submission</h1>
+		<hr>
+		<form enctype="multipart/form-data" accept-charset="UTF-8" ng-submit="submitForm()">
+			
+			<h2>Parent Region</h2>
+			<div class="row">
+				<div class="col-sm-4">
+					<h4>Original Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>New Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>Actions</h4>
+				</div>
+			</div>	
+			
+			<div class="row top-buffer"
+				ng-class="{'has-success':(form.parent != originals[0].parent_id)}">
+				<div class="col-sm-4">
+					<label class="help-block" ng-bind="originals[0].parent_id"></label>
+				</div>
+				<div class="col-sm-4">
+					<input type="text" class="form-control" ng-model="form.parent" disabled></input>
+				</div>
+				<div class="col-sm-4 btn-group">
+				<button type="button" class="btn btn-default" ng-click="regionModal.show=true">Change Parent Region</button>
+					<button type="button" class="btn btn-default" ng-click="form.parent = originals[0].parent_id">Reset</button>
+				</div>
+			</div>
+			
+			<h2>Region Type</h2>
+			<div class="row">
+				<div class="col-sm-4">
+					<h4>Original Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>New Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>Actions</h4>
+				</div>
+			</div>	
+			
+			<div class="row top-buffer"
+				ng-class="{'has-success':(form.type != originals[0].region_type_id)}">
+				<div class="col-sm-4">
+					<label class="help-block" ng-bind="typeModal.types[originals[0].region_type_id]"></label>
+				</div>
+				<div class="col-sm-4">
+					<input type="text" class="form-control" ng-model="typeModal.types[form.type]" disabled></input>
+				</div>
+				<div class="col-sm-4 btn-group">
+				<button type="button" class="btn btn-default" ng-click="typeModal.show=true">Change Region Type</button>
+					<button type="button" class="btn btn-default" ng-click="form.type = originals[0].region_type_id">Reset</button>
+				</div>
+			</div>
+			
+			
+			
+
+			<h2>Region List</h2>
+			<div class="row">
+				<div class="col-sm-4">
+					<h4>Original Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>New Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>Actions</h4>
+				</div>
+			</div>			
+			<div class="row" ng-repeat="region in form.data" 
+				ng-class="{'has-success':(region != '*deleted*' && region != originals[$index].name), 'has-error': (region == '*deleted*')}">
+				<div class="col-sm-4">
+					<label class="help-block" ng-bind="originals[$index].name"></label>
+				</div>
+				<div class="col-sm-4">
+					<input type="text" class="form-control" ng-model="form.data[$index]"></input>
+				</div>
+				<div class="col-sm-4 btn-group">
+					<button type="button" class="btn btn-default" ng-click="region=originals[$index].name">Reset</button>
+					<button type="button" class="btn btn-default" ng-click="region='*deleted*'">Delete</button>
+				</div>
+			</div>
+			{{#if permissions.save}}
+			<input class="btn btn-primary btn-lg" type="submit" ng-click="form.action='save'" value="save changes"></input>
+			{{/if}}
+			{{#if permissions.approve}}
+			<input class="btn btn-primary btn-lg" type="submit" ng-click="form.action='approve'" value="approve submission"></input>
+			{{/if}}
+			{{#if permissions.delete}}
+			<input class="btn btn-primary btn-lg" type="submit" ng-click="form.action='delete'" value="delete submission"></input>
+			{{/if}}
+			{{#if permissions.reject}}
+			<input class="btn btn-primary btn-lg" type="submit" ng-click="form.action='reject'" value="reject submission"></input>
+			{{/if}}
+		</form>
+		
+		<!-- modal -->
+		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.select()">
+			<h2 class="top-no-buffer"><small ng-bind="regionModal.stack[regionModal.stack.length - 1].name"></small></h2>
+			<input type="text" class="form-control" placeholder="filter"></input>
+			<hr>
+			
+		</div>
+		<div modal="typeModal.show" str="typeModal.title">
+			<button class="btn btn-default" ng-repeat="(id, name) in typeModal.types" ng-click="typeModal.select(id)">{{ng "name"}}</button>
+		</div>
+	</div><!-- end container -->
+	
+{{#section 'scripts'}}
+
+<script type="application/javascript">
+    var app = angular.module("myApp", []);
+
+	app.controller("uploadRegion", function($http, $scope, $timeout){
+		$scope.form = {};
+		$scope.form.subid = {{subid}};
+		$http.post("/region/subregions", {subid: $scope.form.subid}).then(regionListHandler, errorCallback)
+		$scope.regionModal = {}
+		$scope.regionModal.stack = [{id: 0, name: "World"}];
+		$scope.regionModal.show = false;
+		$scope.regionModal.title = "Select Parent Region";
+		
+		$scope.regionModal.name = "not selected";
+		$scope.regionModal.select = function(){
+			var region = $scope.regionModal.stack[$scope.regionModal.stack.length - 1];
+			$scope.regionModal.name = region.name;
+			$scope.form.parent = region.id;
+		}
+		
+		
+		$scope.typeModal = {}
+		$scope.typeModal.types = {
+			"1": "Country",
+			"2": "City",
+			"3": "State"
+		}
+		$scope.typeModal.show = false;
+		$scope.typeModal.title = "Select Region Type";
+		$scope.typeModal.name = "not selected";
+		$scope.typeModal.select = function(id){
+			$scope.typeModal.name = this.types[id];
+			$scope.form.type = id;
+			$scope.typeModal.show = false;
+		}
+		$scope.form.data = [];
+
+		$scope.submitForm = function(){
+			$scope.error = uploadRegionValidate($scope.form);
+			if ($scope.error.none)
+				$http.post('/region/edit', $scope.form).then(successCallback, errorCallback);
+		}
+		
+		function successCallback(response){
+			console.log("data successfully added!");
+			console.log(response.data);
+		}
+		
+		function errorCallback(response){
+			console.log("error");
+			console.log(response.data);
+		}
+		function regionListHandler(response){
+			$timeout(function(){
+				$scope.originals = response.data;
+				$scope.form.parent = $scope.originals[0].parent_id;
+				$scope.form.type = $scope.originals[0].region_type_id;
+				for (var i = 0; i < $scope.originals.length; i++){
+					$scope.form.data.push($scope.originals[i].name);
+				}
+			})
+		}
+	});
+</script>
+<script src="/content/js/modal.js"></script>
+<script src="/content/js/titlecase.js"></script>
+<script src="/content/validators/regionupload.js"></script>
+
+{{/section}}

@@ -1,20 +1,5 @@
 function getRouter(router, database){
 	/* GET home page. */
-	router.get('/mysql', function(req, res, next){
-		database.mysql.query('SELECT * from users', function(err, rows, fields) {
-			if (err){
-				res.send('mysql error: ' + err.message);
-			}else{
-				res.send('mysql results: ' + JSON.stringify(rows))
-			}
-
-		});
-	});
-
-	router.get('/', function(req, res, next) {
-		res.render('index', { 
-			title: 'Regionstats'});
-	});
 
 	router.get('/signup', function(req, res, next){
 		res.render('signup', { 
@@ -31,19 +16,6 @@ function getRouter(router, database){
 		res.redirect('/');
 	})
 
-	router.get('/dashboard', function(req, res, next){	
-		if (req.session.userid > 0) {
-			res.render('dashboard', {
-				title: 'Regionstats',
-				user:  req.session.username
-			});
-		}
-		else {
-			res.redirect('login', { 
-				title: 'Regionstats'});
-			//res.send(req.session.userid);
-		}
-	})
 	
 	router.post('/signup', function(req, res, next){
 		validateObj.signup(req.body)
@@ -52,6 +24,7 @@ function getRouter(router, database){
 			.then(function(obj){
 				req.session.userid = obj.userid;
 				req.session.username = obj.username;
+				req.session.admin = obj.admin;
 				res.send({redirect: true})
 			})
 			.catch(function(obj){
@@ -65,6 +38,7 @@ function getRouter(router, database){
 			.then(function(obj){
 				req.session.userid = obj.userid;
 				req.session.username = obj.username;
+				req.session.admin = obj.admin;
 				res.send({redirect: true})
 			})
 			.catch(function(obj){
@@ -92,7 +66,8 @@ function getRouter(router, database){
 				if (result.length > 0) {
 					resolve({
 						userid: result[0].id,
-						username: result[0].username
+						username: result[0].username,
+						admin: result[0].admin
 					});
 				}
 				else {
@@ -122,16 +97,18 @@ function getRouter(router, database){
 
 	function insertUser(body){
 		return new Promise (function(resolve, reject){
-			database.mysql.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', 
+			database.mysql.query('INSERT INTO users (username, email, password, date_created) VALUES (?, ?, ?, now())', 
 				[body.username, body.email, body.password], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
-					reject({message: "internal database error"});
+					reject({message: "internal database error: " + err.message});
 					return;
 				}
+				console.log("result.insertId: " + result.insertId);
 				resolve({
 					userid: result.insertId,
-					username: body.username
+					username: body.username,
+					admin: 0
 				});
 			};
 		});

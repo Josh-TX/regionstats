@@ -5,7 +5,7 @@
 {{/section}}
 
 {{>navigation_bar}}
-<div class="container" ng-controller="signup" ng-submit="submitForm()">
+<div class="container" ng-controller="signup">
 	<br>
 	{{makeLink "mysql database" "/mysql"}}
 	<br>
@@ -51,10 +51,10 @@
 				window.location.href = ('/dashboard');
 			}
 			else if (response.data.password) {
-				$scope.form.password = response.data.password;
+				$scope.error.password = response.data.password;
 			}
 			else {
-				$scope.form.password = response.data.message;
+				$scope.error.password = response.data.message;
 			}
 		}
 		function errorCallback(response){

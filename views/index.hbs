@@ -31,8 +31,10 @@ app.factory('regionService', function($http) {
 	//$scope.regionRequest = [];
 
 	var select = function(new_id){
+		
 		id = new_id;
-		console.log(id);
+		console.log("new_id = " + id);
+		console.log("id = " + id);
 		getRegion(id);
 	}
 
@@ -73,15 +75,15 @@ app.factory('regionService', function($http) {
 
 app.controller("viewRegions", function($scope, $http, regionService) {
 
-	/*$scope.id = regionService.id;
+	$scope.id = regionService.id;
 	$scope.regionList = regionService.regionList;
 	$scope.back = regionService.back;
 	$scope.select = regionService.select;
 
 	$scope.test = function(){
 		alert($scope.id + " : " + regionService.id);
-	}*/
-	
+	}
+	/*
 	$scope.id = 1;
 
 	$http.post('/ajax/region', {id: $scope.id}).then(successCallback, errorCallback);
@@ -123,7 +125,7 @@ app.controller("viewRegions", function($scope, $http, regionService) {
 		//alert(response);
 		console.log(response);
 	}
-	
+	*/
 })
 
 </script>

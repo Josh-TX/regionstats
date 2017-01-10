@@ -57,8 +57,11 @@ function getApp(config, database){
 	//this allows caching anything in the content folder
 	app.use('/content', express.static(path.join(__dirname, 'content')));
 	
-	var indexRouter = require('./routes/index').getRouter(router, database);
-	app.use(indexRouter);
+	var mainRouter = require('./routes/main').getRouter(router, database);
+	app.use(mainRouter);
+	
+	var loginRouter = require('./routes/login').getRouter(router, database);
+	app.use(loginRouter);
 	
 	var regionRouter = require('./routes/region').getRouter(router, database);
 	app.use(regionRouter);

@@ -1,3 +1,92 @@
+{{#section 'styles'}}
+	td{
+		cursor: pointer;
+	}
+{{/section}}
 {{>navigation_bar}}
+<div class="container" ng-controller="dashboardCtrl">
+	<h1>dashboard</h1>
+	<hr>
+	<a class="btn btn-primary" href="/region/upload">Upload Regions</a>
+	<a class="btn btn-primary" href="/source/upload">Upload Source</a>
+	<a class="btn btn-primary" href="/data/upload">Upload Data</a>
+	
+	<div ng-if="submission.own.length > 0">
+		<h3>Your pending submissions</h3>
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Type</th>
+					<th>Text</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="item in submission.own" ng-click="edit(item)">
+					<td ng-bind="item.date_sub"></td>
+					<td ng-bind="item.type"></td>
+					<td ng-bind="item.text"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div ng-if="submission.own.length == 0">
+		<h3>You have no pending submissions</h3>
+		<hr>
+	</div>
+	
+	<div ng-if="submission.others && submission.others.length > 0">
+		<h3>Other users' pending submissions</h3>
+		<table class="table table-hover" ng-if="submission.others">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Uploader</th>
+					<th>Type</th>
+					<th>Text</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="item in submission.others" ng-click="edit(item)">
+					<td ng-bind="item.date_sub"></td>
+					<td ng-bind="item.username"></td>
+					<td ng-bind="item.type"></td>
+					<td ng-bind="item.text"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<div ng-if="submission.others && submission.others.length == 0">
+		<h3>no other users have pending submissions</h3>
+	</div>
+	
+</div>
 
-<h1>Welcome, {{ user }} </h1>
+{{#section 'scripts'}}
+
+<script type="application/javascript">
+    var app = angular.module("myApp", []);
+
+	app.controller("dashboardCtrl", function($http, $scope){
+		$http.post("/dashboard", {}).then(submissionHandler, errorCallback)
+		$scope.submission = {}
+		$scope.edit = function(item){
+			if (item.type == "r")
+				window.location.href = "/region/edit/" + item.id;
+		}
+		
+		function submissionHandler(response){
+			$scope.submission.own = response.data.own;
+			if (response.data.others){
+				$scope.submission.others = response.data.others;
+			}
+		}
+		function errorCallback(response){
+			alert("error: " + response.data.message);
+		}
+	});
+	
+</script>
+<script src="/content/validators/login.js"></script>
+{{/section}}

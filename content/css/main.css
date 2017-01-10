@@ -17,6 +17,10 @@
 	margin-top:20px; 
 }
 
+.top-buffer-sm { 
+	margin-top:5px; 
+}
+
 .top-no-buffer { 
 	margin-top:0; 
 }

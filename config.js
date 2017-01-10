@@ -11,7 +11,7 @@ config.mongo.password = "password";
 
 config.mysql = {};
 config.mysql.host = "localhost";
-config.mysql.db = "test";
+config.mysql.db = "main";
 config.mysql.username = "root";
 config.mysql.password = "";
 
