@@ -13,37 +13,41 @@ function getRouter(router, database){
 
 	router.get('/', function(req, res, next) {
 		res.render('index', { 
-			title: 'Regionstats'});
+			title: 'Regionstats'
+		});
 	});
-
-	router.get('/dashboard', function(req, res, next){	
-		if (req.session.userid > 0) {
-			res.render('dashboard', {
-				title: 'Regionstats'
-			});
+	
+	
+	router.all("/dashboard", function(req, res, next) {
+		if (req.session.userid > 0){
+			next();
 		}
 		else {
-			res.redirect('login');
-			//res.send(req.session.userid);
+			req.session.message = "You must be logged in to view that page";
+			console.log("set message to " + req.session.message)
+			if (req.method == "GET"){
+				res.redirect("/login");
+			}else {
+				res.send({redirect: "/login"});
+			}	
 		}
+	});
+	router.get('/dashboard', function(req, res, next){	
+		res.render('dashboard', {
+			title: 'Regionstats'
+		});
 	})
-	
 	router.post('/dashboard', function(req, res, next){
-		if (req.session.userid > 0) {
-			var data = {};
-			getOwnSubmissions(req.session.userid, data)
-				.then(getOtherSubmissionsIfAdmin
-					.bind(null, req.session.userid, req.session.admin))
-				.then(function(data){
-					res.send(data);
-				})
-				.catch(function(err){
-					console.log(err.message)
-				});
-
-		}else {
-			res.send({message: "not logged in"})
-		}
+		var data = {};
+		getOwnSubmissions(req.session.userid, data)
+			.then(getOtherSubmissionsIfAdmin
+				.bind(null, req.session.userid, req.session.admin))
+			.then(function(data){
+				res.send(data);
+			})
+			.catch(function(err){
+				console.log(err.message)
+			});
 	});
 	
 	function getOwnSubmissions(userid, data){

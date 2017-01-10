@@ -11,10 +11,11 @@
 	<br>
 	{{makeLink "mongo database" "/mongo"}}
 
-
+	{{message}}
 	<div class="row">
 		<div class="col-sm-6 col-sm-offset-3">
 			<h1>Login to Account</h1>
+			<hr>
 			<form ng-submit="submitForm()">
 				<div ng-class="{'form-group': true, 'has-error': error.username}">
 					<label class="control-label">username</label>

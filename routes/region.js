@@ -1,4 +1,19 @@
 function getRouter(router, database){
+	router.all("*", function(req, res, next) {
+		if (req.session.userid > 0){
+			next();
+		}
+		else {
+			req.session.message = "You must be logged in to view that page";
+			if (req.method == "GET"){
+				res.redirect("/login");
+			}else {
+				res.send({redirect: "/login"});
+			}	
+		}
+	});
+
+	
 	router.get('/region/upload', function(req, res, next) {
 		res.render('uploadregion');
 	});
@@ -16,9 +31,11 @@ function getRouter(router, database){
 	});
 	
 	router.get('/region/edit/:subid', function(req, res, next) {
-		getSubmissionInfo(req.params.subid)
-			.then(function(submission){
-				var permissions = getPermissions(req.session.userid, req.session.admin, submission.user_id);
+		getSubmissionInfo(req.params)
+			.then(function(body){
+				console.log(typeof body.submission)
+				console.log("userid, admin, submitter_id", req.session.userid, req.session.admin, body.submission.user_id)
+				var permissions = getPermissions(req.session.userid, req.session.admin, body.submission.user_id);
 				if (!permissions.none){
 					res.render('regionedit', {
 						subid: req.params.subid,
@@ -38,36 +55,38 @@ function getRouter(router, database){
 	router.post('/region/edit', function(req, res, next){
 		req.body.userid = req.session.userid;
 		req.body.admin =  req.session.admin;
+		console.log("req.session.admin" + req.session.admin + " : " + req.session.userid)
 		validateObj.upload(req.body)
 			.then(getSubmissionInfo)
-			.then(checkValidAction.bind(null, req.body.action, req.session.userid, req.session.admin))
-			.then(function(action){
-				if (action == 'save'){
-					deleteSubRegions(req.body)
+			.then(checkValidAction)
+			.then(function(body){
+				if (body.action == 'save'){
+					deleteSubRegions(body)
 						.then(modifySubmission)
 						.then(insertSubRegions)
 						.then(function(){
-							res.send({redirect: true})
+							res.send({redirect: "/dashboard"})
 						})
 				}
-				if (action == 'delete'){
-					deleteSubRegions(req.body)
+				if (body.action == 'delete'){
+					deleteSubRegions(body)
 						.then(deleteSubmission)
 						.then(function(){
-							res.send({redirect: true})
+							res.send({redirect: "/dashboard"})
 						})
 				}
-				if (action == 'approve'){
-					markSubmission("a", req.body)
+				if (body.action == 'approve'){
+					console.log("action == approve")
+					markSubmission("a", body)
 						.then(insertRegions)
 						.then(function(){
-							res.send({redirect: true})
+							res.send({redirect: "/dashboard"})
 						})
 				}
-				if (action == 'reject'){
-					markSubmission("r", req.body)
+				if (body.action == 'reject'){
+					markSubmission("r", body)
 						.then(function(){
-							res.send({redirect: true})
+							res.send({redirect: "/dashboard"})
 						})
 				}
 				
@@ -82,6 +101,9 @@ function getRouter(router, database){
 		getSubRegions(req.body.subid)
 			.then(function(arr){
 				res.send(arr);
+			})
+			.catch(function(err){
+				res.send(err);
 			})
 	});
 	
@@ -134,7 +156,8 @@ function getRouter(router, database){
 	}
 	function markSubmission(status, body){
 		return new Promise(function(resolve, reject){
-			database.mysql.query('UPDATE submissions SET status = ? WHERE id = ?', [status, body.subid], databaseHandler);
+			database.mysql.query('UPDATE submissions SET status = ?, date_eval = now(), admin_id = ? WHERE id = ?', 
+				[status, body.userid, body.subid], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
 					reject({message: "internal database error: "  + err.message});
@@ -166,8 +189,9 @@ function getRouter(router, database){
 			throw Error("Submission is not waiting for approval");
 		}
 		var permissions = getPermissions(body.userid, body.admin, body.submission.user_id);
-		if (permissions[action]){
-			return action;
+		console.log(body.userid, body.action, body.admin, body.submission.user_id, typeof permissions[body.action])
+		if (permissions[body.action]){
+			return body;
 		}
 		else{
 			throw Error("You do not have permission to perform this action");
@@ -194,13 +218,14 @@ function getRouter(router, database){
 	}
 	
 	function getSubmissionInfo(body){
+		console.log("body.subid = " + body.subid)
 		return new Promise(function(resolve, reject){	
-			if (!/\d+/.test(subid)){
+			if (!/\d+/.test(body.subid)){
 				reject({message: "invalid submission id"});
 				return;
 			}
 			database.mysql.query("SELECT user_id, type, status FROM submissions WHERE id = ?", 
-				[subid], databaseHandler);
+				[body.subid], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
 					reject({message: "internal database error: " + err.message});

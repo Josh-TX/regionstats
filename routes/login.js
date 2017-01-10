@@ -8,7 +8,9 @@ function getRouter(router, database){
 
 	router.get('/login', function(req, res, next){
 		res.render('login', { 
-		title: 'Regionstats'});
+			title: 'Regionstats',
+			message: req.session.message
+		});
 	});
 
 	router.get('/logout', function(req, res,next){
