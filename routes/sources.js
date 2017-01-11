@@ -1,5 +1,5 @@
 function getRouter(router, database){
-	router.all("/region", function(req, res, next) {
+	router.all("/source", function(req, res, next) {
 		if (req.session.userid > 0){
 			next();
 		}
@@ -14,18 +14,16 @@ function getRouter(router, database){
 	});
 
 	
-	router.get('/region/upload', function(req, res, next) {
-		res.render('regionupload', {
-			title: "RegionStats"
-		});
+	router.get('/source/upload', function(req, res, next) {
+		res.render('sourceupload');
 	});
 	
-	router.post('/region/upload', function(req, res, next) {
+	router.post('/source/upload', function(req, res, next) {
 		validateObj.upload(req.body)
 			.then(insertSubmission.bind(null, req.session.userid))
-			.then(insertSubRegions)
+			.then(insertSubSources)
 			.then(function(){
-				req.session.message = "region successfully uploaded!";
+				req.session.message = "source successfully uploaded!";
 				res.send({redirect: "/dashboard"})
 			})
 			.catch(function(obj){
@@ -33,18 +31,18 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.get('/region/edit/:subid', function(req, res, next) {
+	router.get('/source/edit/:subid', function(req, res, next) {
 		getSubmissionInfo(req.params)
 			.then(function(body){
 				var permissions = getPermissions(req.session.userid, req.session.admin, body.submission.user_id);
 				if (!permissions.none){
-					res.render('regionedit', {
+					res.render('sourceedit', {
 						subid: req.params.subid,
-						permissions: permissions,
-						title: "RegionStats"
+						permissions: permissions
 					});
 				}else {
-					res.send(permissions);
+					req.session.message = "You do not have permission to edit this submission!";
+					res.redirect('/dashboard');
 				}
 			})
 			.catch(function(err){
@@ -54,7 +52,7 @@ function getRouter(router, database){
 	});
 	
 	
-	router.post('/region/edit', function(req, res, next){
+	router.post('/source/edit', function(req, res, next){
 		req.body.userid = req.session.userid;
 		req.body.admin =  req.session.admin;
 		validateObj.upload(req.body)
@@ -100,8 +98,8 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.post('/region/subregions', function(req, res, next){
-		getSubRegions(req.body.subid)
+	router.post('/source/subsources', function(req, res, next){
+		getSubSources(req.body.subid)
 			.then(function(arr){
 				res.send(arr);
 			})
@@ -113,13 +111,13 @@ function getRouter(router, database){
 	var validateObj = (function(){
 		var getValidator = require('../modules/getvalidator');
 		var validate = {};
-		validate.upload = getValidator("regionupload");
+		validate.upload = getValidator("sourceupload");
 		return validate;
 	})();
 	
-	function getSubRegions(subid){
+	function getSubSources(subid){
 		return new Promise(function(resolve, reject){
-			database.mysql.query('SELECT name, region_type_id, parent_id FROM sub_regions WHERE sub_id = ?', 
+			database.mysql.query('SELECT region_id, publisher, title, url FROM sub_sources WHERE sub_id = ?', 
 			[subid], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
@@ -133,7 +131,7 @@ function getRouter(router, database){
 	
 	function insertSubmission(userid, body){
 		return new Promise(function(resolve, reject){
-			database.mysql.query('INSERT INTO submissions (user_id, date_sub, type, status) VALUES (?, now(), "r", "w")', 
+			database.mysql.query('INSERT INTO submissions (user_id, date_sub, type, status) VALUES (?, now(), "s", "w")', 
 			[userid], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
@@ -185,8 +183,8 @@ function getRouter(router, database){
 	
 	
 	function checkValidAction(body){
-		if (body.submission.type != "r"){
-			throw Error("Submission type is not a region");
+		if (body.submission.type != "s"){
+			throw Error("Submission type is not a source");
 		}
 		if (body.submission.status != "w"){
 			throw Error("Submission is not waiting for approval");
@@ -242,8 +240,8 @@ function getRouter(router, database){
 		});
 	}
 	
-	function insertRegions(body){
-		var sql = 'INSERT INTO regions (sub_id, parent_id, region_type_id, name) VALUES '
+	function insertSources(body){
+		var sql = 'INSERT INTO sources (sub_id, parent_id, region_type_id, name) VALUES '
 		for (var i = 0; i < body.data.length; i++){
 			sql += "(" + body.subid + "," + body.parent + "," + body.type + "," + database.mysql.escape(body.data[i]) + "),"
 		}
@@ -260,12 +258,9 @@ function getRouter(router, database){
 		});
 	}
 	
-	function insertSubRegions(body){
-		var sql = 'INSERT INTO sub_regions (sub_id, parent_id, region_type_id, name) VALUES '
-		for (var i = 0; i < body.data.length; i++){
-			sql += "(" + body.subid + "," + body.parent + "," + body.type + "," + database.mysql.escape(body.data[i]) + "),"
-		}
-		sql = sql.substring(0, sql.length - 1);
+	function insertSubSources(body){
+		var sql = 'INSERT INTO sub_sources (sub_id, region_id, publisher, title, url) VALUES ';
+		sql += "(" + body.subid + "," + body.parent + "," + body.type + "," + database.mysql.escape(body.title) + "," + database.mysql.escape(body.url) + ")";
 		return new Promise(function(resolve, reject){	
 			database.mysql.query(sql, databaseHandler);
 			function databaseHandler(err, result) {
@@ -278,7 +273,7 @@ function getRouter(router, database){
 		});
 	}
 	
-	function deleteSubRegions(body){
+	function deleteSubSources(body){
 		return new Promise(function(resolve, reject){	
 			database.mysql.query('DELETE FROM sub_regions WHERE sub_id = ?', [body.subid], databaseHandler);
 			function databaseHandler(err, result) {

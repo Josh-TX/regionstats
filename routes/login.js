@@ -3,13 +3,13 @@ function getRouter(router, database){
 
 	router.get('/signup', function(req, res, next){
 		res.render('signup', { 
-			title: 'Regionstats'
+			title: 'RegionStats'
 			});
 	});
 
 	router.get('/login', function(req, res, next){
 		res.render('login', { 
-			title: 'Regionstats'
+			title: 'RegionStats'
 		});
 	});
 

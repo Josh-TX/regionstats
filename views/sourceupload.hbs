@@ -1,12 +1,12 @@
 {{#section 'styles'}}
 {{/section}}
 	{{>navigation_bar}}
-	<div class="container" ng-controller="uploadRegion" ng-submit="submitForm()">
-		<h1>Upload Region</h1>
+	<div class="container" ng-controller="uploadSource" ng-submit="submitForm()">
+		<h1>Upload Source</h1>
 		<form enctype="multipart/form-data" accept-charset="UTF-8">
 			<div class="row top-buffer form-group" ng-class="{'has-error': error.parent}">
 				<div class="col-sm-3">
-					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Parent Region</button>
+					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Region</button>
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="regionModal.name" disabled></input>
@@ -15,25 +15,36 @@
 			</div>
 			<div class="row top-buffer form-group" ng-class="{'has-error': error.type}">
 				<div class="col-sm-3">
-					<button type="button" class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Region Type</button>
+					<button type="button" class="btn btn-primary btn-block" ng-click="publisherModal.show=true">Select Publisher</button>
 				</div>
 				<div class="col-sm-9">
-					<input type="text" class="form-control" ng-model="typeModal.name" disabled></input>
+					<input type="text" class="form-control" ng-model="publisherModal.name" disabled></input>
 					<span class="help-block pull-right" ng-bind="error.type"></span>
 				</div>
 			</div>
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.data}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': error.title}">
 				<div class="col-sm-3">
 					<label class="btn btn-primary btn-block">
-						Select File 
-						<input type="file" class="hidden" file-reader="form.data" file-name="fileName">
+						Title:
+						<!--<input type="file" class="hidden" file-reader="form.data" file-name="title">-->
 					</label>
 				</div>
 				<div class="col-sm-9">
-					<input type="text" class="form-control" ng-model="fileName" disabled></input>
-					<span class="help-block pull-right" ng-bind="error.data"></span>
+					<input type="text" class="form-control" ng-model="form.title"></input>
+					<span class="help-block pull-right" ng-bind="error.title"></span>
 				</div>
-				
+			</div>
+			<div class="row top-buffer form-group" ng-class="{'has-error': error.url}">
+				<div class="col-sm-3">
+					<label class="btn btn-primary btn-block">
+						URL: 
+						<!--<input type="file" class="hidden" file-reader="form.data" file-name="fileName">-->
+					</label>
+				</div>
+				<div class="col-sm-9">
+					<input type="text" class="form-control" ng-model="form.url"></input>
+					<span class="help-block pull-right" ng-bind="error.url"></span>
+				</div>	
 			</div>
 			<input class="btn btn-primary btn-lg pull-right" type="submit" value="submit"></input>
 		</form>
@@ -41,7 +52,7 @@
 			<h2>preview</h2>
 			<table>
 				<tr>
-					<th ng-bind="typeModal.name"></th>
+					<th ng-bind="publisherModal.name"></th>
 				</tr>
 				<tr ng-repeat="region in form.data track by $index">
 					<td ng-bind="region"></td>
@@ -58,8 +69,8 @@
 			<p ng-if="regionModal.list[regionModal.currentRegion.id].r.length == 0">No sub-regions found</p>
 		</div>
 
-		<div modal="typeModal.show" str="typeModal.title">
-			<button class="btn btn-default" ng-repeat="(id, name) in typeModal.types" ng-click="typeModal.select(id)">{{ng "name"}}</button>
+		<div modal="publisherModal.show" str="publisherModal.title">
+			<button class="btn btn-default" ng-repeat="(id, name) in publisherModal.types" ng-click="publisherModal.select(id)">{{ng "name"}}</button>
 		</div>
 	</div><!-- end container -->
 	
@@ -68,22 +79,20 @@
 <script type="application/javascript">
     var app = angular.module("myApp", []);
 
-	app.controller("uploadRegion", function($http, $scope){
-		$scope.typeModal = {}
-		$scope.typeModal.types = {
-			"1": "Country",
-			"2": "City",
-			"3": "State",
-			"4": "Territory",
-			"5": "Province"
+	app.controller("uploadSource", function($http, $scope){
+		$scope.publisherModal = {}
+		$scope.publisherModal.types = {
+			"1": "CollegeBoard",
+			"2": "New York Times",
+			"3": "United States Census Bureau"
 		}
-		$scope.typeModal.show = false;
-		$scope.typeModal.title = "Select Region Type";
-		$scope.typeModal.name = "not selected";
-		$scope.typeModal.select = function(id){
-			$scope.typeModal.name = this.types[id];
+		$scope.publisherModal.show = false;
+		$scope.publisherModal.title = "Select Region Type";
+		$scope.publisherModal.name = "not selected";
+		$scope.publisherModal.select = function(id){
+			$scope.publisherModal.name = this.types[id];
 			$scope.form.type = id;
-			$scope.typeModal.show = false;
+			$scope.publisherModal.show = false;
 		}
 		
 		$scope.form = {};
@@ -94,9 +103,9 @@
 
 		$scope.submitForm = function(){
 			$scope.form.data.map(titleCase);
-			$scope.error = uploadRegionValidate($scope.form);
+			$scope.error = uploadSourceValidate($scope.form);
 			if ($scope.error.none)
-				$http.post('/region/upload', $scope.form).then(successCallback, errorCallback);
+				$http.post('/source/upload', $scope.form).then(successCallback, errorCallback);
 		}
 		
 		function successCallback(response){
@@ -119,7 +128,7 @@
 <script src="/content/js/filereader.js"></script>
 <script src="/content/js/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>
-<script src="/content/validators/regionupload.js"></script>
+<script src="/content/validators/sourceupload.js"></script>
 <script src="/content/js/getRegions.js"></script>
 
 {{/section}}

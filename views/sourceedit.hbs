@@ -1,12 +1,12 @@
 {{#section 'styles'}}
 {{/section}}
 	{{>navigation_bar}}
-	<div class="container" ng-controller="uploadRegion">
-		<h1>Region Submission</h1>
+	<div class="container" ng-controller="editSource">
+		<h1>Source Submission</h1>
 		<hr>
 		<form enctype="multipart/form-data" accept-charset="UTF-8" ng-submit="submitForm()">
 			
-			<h2>Parent Region</h2>
+			<h2>Region</h2>
 			<div class="row">
 				<div class="col-sm-4">
 					<h4>Original Value</h4>
@@ -28,12 +28,12 @@
 					<input type="text" class="form-control" ng-model="form.parent" disabled></input>
 				</div>
 				<div class="col-sm-4 btn-group">
-				<button type="button" class="btn btn-default" ng-click="regionModal.show=true">Change Parent Region</button>
+				<button type="button" class="btn btn-default" ng-click="regionModal.show=true">Change Region</button>
 					<button type="button" class="btn btn-default" ng-click="form.parent = originals[0].parent_id">Reset</button>
 				</div>
 			</div>
 			
-			<h2>Region Type</h2>
+			<h2>Publisher</h2>
 			<div class="row">
 				<div class="col-sm-4">
 					<h4>Original Value</h4>
@@ -55,15 +55,12 @@
 					<input type="text" class="form-control" ng-model="typeModal.types[form.type]" disabled></input>
 				</div>
 				<div class="col-sm-4 btn-group">
-				<button type="button" class="btn btn-default" ng-click="typeModal.show=true">Change Region Type</button>
+				<button type="button" class="btn btn-default" ng-click="typeModal.show=true">Change Publisher</button>
 					<button type="button" class="btn btn-default" ng-click="form.type = originals[0].region_type_id">Reset</button>
 				</div>
-			</div>
-			
-			
-			
+			</div>		
 
-			<h2>Region List</h2>
+			<h2>Title</h2>
 			<div class="row">
 				<div class="col-sm-4">
 					<h4>Original Value</h4>
@@ -74,20 +71,23 @@
 				<div class="col-sm-4">
 					<h4>Actions</h4>
 				</div>
-			</div>			
-			<div class="row" ng-repeat="region in form.data" 
-				ng-class="{'has-success':(region != '*deleted*' && region != originals[$index].name), 'has-error': (region == '*deleted*')}">
+			</div>	
+			
+			<div class="row top-buffer"
+				ng-class="{'has-success':(form.type != originals[0].region_type_id)}">
 				<div class="col-sm-4">
-					<label class="help-block" ng-bind="originals[$index].name"></label>
+					<label class="help-block" ng-bind="typeModal.types[originals[0].region_type_id]"></label>
 				</div>
 				<div class="col-sm-4">
-					<input type="text" class="form-control" ng-model="form.data[$index]"></input>
+					<input type="text" class="form-control" ng-model="typeModal.types[form.type]" disabled></input>
 				</div>
 				<div class="col-sm-4 btn-group">
-					<button type="button" class="btn btn-default" ng-click="region=originals[$index].name">Reset</button>
-					<button type="button" class="btn btn-default" ng-click="region='*deleted*'">Delete</button>
+				<button type="button" class="btn btn-default" ng-click="typeModal.show=true">Change Publisher</button>
+					<button type="button" class="btn btn-default" ng-click="form.type = originals[0].region_type_id">Reset</button>
 				</div>
 			</div>
+			<h2>URL</h2>
+			
 			{{#if permissions.save}}
 			<input class="btn btn-primary btn-lg" type="submit" ng-click="form.action='save'" value="save changes"></input>
 			{{/if}}
@@ -119,11 +119,11 @@
 <script type="application/javascript">
     var app = angular.module("myApp", []);
 
-	app.controller("uploadRegion", function($http, $scope, $timeout){
+	app.controller("editSource", function($http, $scope, $timeout){
 		$scope.form = {};
 		$scope.form.subid = {{subid}};
-		$http.post("/region/subregions", {subid: $scope.form.subid}).then(regionListHandler, errorCallback)
-		$scope.regionModal = {}
+		$http.post("/source/subsources", {subid: $scope.form.subid}).then(sourceListHandler, errorCallback)
+		/*$scope.regionModal = {}
 		$scope.regionModal.stack = [{id: 0, name: "World"}];
 		$scope.regionModal.show = false;
 		$scope.regionModal.title = "Select Parent Region";
@@ -133,10 +133,8 @@
 			var region = $scope.regionModal.stack[$scope.regionModal.stack.length - 1];
 			$scope.regionModal.name = region.name;
 			$scope.form.parent = region.id;
-		}
-		
-		
-		$scope.typeModal = {}
+		}*/
+		/*$scope.typeModal = {}
 		$scope.typeModal.types = {
 			"1": "Country",
 			"2": "City",
@@ -150,12 +148,33 @@
 			$scope.form.type = id;
 			$scope.typeModal.show = false;
 		}
+		$scope.form.data = [];*/
+
+		$scope.publisherModal = {}
+		$scope.publisherModal.types = {
+			"1": "CollegeBoard",
+			"2": "New York Times",
+			"3": "United States Census Bureau"
+		}
+		$scope.publisherModal.show = false;
+		$scope.publisherModal.title = "Select Region Type";
+		$scope.publisherModal.name = "not selected";
+		$scope.publisherModal.select = function(id){
+			$scope.publisherModal.name = this.types[id];
+			$scope.form.type = id;
+			$scope.publisherModal.show = false;
+		}
+		
+		$scope.form = {};
+		$scope.fileName = "not selected";
 		$scope.form.data = [];
 
+		$scope.regionModal = getRegionModal($scope.form, $http);
+
 		$scope.submitForm = function(){
-			$scope.error = uploadRegionValidate($scope.form);
+			$scope.error = uploadSourceValidate($scope.form);
 			if ($scope.error.none)
-				$http.post('/region/edit', $scope.form).then(successCallback, errorCallback);
+				$http.post('/source/edit', $scope.form).then(successCallback, errorCallback);
 		}
 		
 		function successCallback(response){
@@ -173,8 +192,9 @@
 		function errorCallback(response){
 			alert("an error occured: " + JSON.stringify(response.data))
 		}
-		function regionListHandler(response){
+		function sourceListHandler(response){
 			$timeout(function(){
+				console.log(response.data);
 				$scope.originals = response.data;
 				$scope.form.parent = $scope.originals[0].parent_id;
 				$scope.form.type = $scope.originals[0].region_type_id;
@@ -187,7 +207,7 @@
 </script>
 <script src="/content/js/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>
-<script src="/content/validators/regionupload.js"></script>
-<script src="/content/js/getRegions.js"></script
+<script src="/content/validators/sourceupload.js"></script>
+<script src="/content/js/getRegions.js"></script>
 
 {{/section}}

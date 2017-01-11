@@ -13,7 +13,7 @@ function getRouter(router, database){
 
 	router.get('/', function(req, res, next) {
 		res.render('index', { 
-			title: 'Regionstats'
+			title: 'RegionStats'
 		});
 	});
 	
@@ -34,7 +34,7 @@ function getRouter(router, database){
 	});
 	router.get('/dashboard', function(req, res, next){	
 		res.render('dashboard', {
-			title: 'Regionstats'
+			title: 'RegionStats'
 		});
 	})
 	router.post('/dashboard', function(req, res, next){

@@ -79,6 +79,8 @@
 		$scope.edit = function(item){
 			if (item.type == "r")
 				window.location.href = "/region/edit/" + item.id;
+			if (item.type == "s")
+				window.location.href = "/source/edit/" + item.id;
 		}
 		
 		function submissionHandler(response){
