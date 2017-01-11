@@ -1,5 +1,5 @@
 function getRouter(router, database){
-	router.all("*", function(req, res, next) {
+	router.all("/region", function(req, res, next) {
 		if (req.session.userid > 0){
 			next();
 		}

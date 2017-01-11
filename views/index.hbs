@@ -22,7 +22,7 @@
 var app = angular.module('myApp', []);
 
 app.factory('regionService', function($http) {
-	var id = 1;
+	var id = 0;
 
 	$http.post('/ajax/region', {id: id}).then(successCallback, errorCallback);
 
@@ -75,16 +75,16 @@ app.factory('regionService', function($http) {
 
 app.controller("viewRegions", function($scope, $http, regionService) {
 
-	$scope.id = regionService.id;
+	/*$scope.id = regionService.id;
 	$scope.regionList = regionService.regionList;
 	$scope.back = regionService.back;
 	$scope.select = regionService.select;
 
 	$scope.test = function(){
 		alert($scope.id + " : " + regionService.id);
-	}
-	/*
-	$scope.id = 1;
+	}*/
+	
+	$scope.id = 0;
 
 	$http.post('/ajax/region', {id: $scope.id}).then(successCallback, errorCallback);
 
@@ -117,7 +117,6 @@ app.controller("viewRegions", function($scope, $http, regionService) {
 		//alert(response);
 		//console.log(response);
 		$scope.regionList[$scope.id] = response.data;
-		
 	}
 
 	function errorCallback(response)
@@ -125,7 +124,7 @@ app.controller("viewRegions", function($scope, $http, regionService) {
 		//alert(response);
 		console.log(response);
 	}
-	*/
+	
 })
 
 </script>

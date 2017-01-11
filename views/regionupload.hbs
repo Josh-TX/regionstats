@@ -49,12 +49,15 @@
 			</table>
 		</div>
 		<!-- modal -->
-		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.select()">
-			<h2 class="top-no-buffer"><small ng-bind="regionModal.stack[regionModal.stack.length - 1].name"></small></h2>
-			<input type="text" class="form-control" placeholder="filter"></input>
+		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.select(regionModal.currentRegion.id)">
+			<h2 class="top-no-buffer"><small ng-bind="regionModal.currentRegion.name"></small></h2>
+			<!--<input type="text" class="form-control" placeholder="filter"></input>-->
+			<button ng-click="back()" ng-if="regionModal.list[regionModal.currentRegion.id].parent != -1">back</button>
 			<hr>
-			
+			<button class="btn btn-default" ng-repeat="data in regionModal.list[regionModal.currentRegion.id].r" ng-click="regionModal.select(data.id)">{{ng "data.name"}}</button>
+			<p ng-if="regionModal.list[regionModal.currentRegion.id].r.length == 0">No sub-regions found</p>
 		</div>
+
 		<div modal="typeModal.show" str="typeModal.title">
 			<button class="btn btn-default" ng-repeat="(id, name) in typeModal.types" ng-click="typeModal.select(id)">{{ng "name"}}</button>
 		</div>
@@ -66,18 +69,65 @@
     var app = angular.module("myApp", []);
 
 	app.controller("uploadRegion", function($http, $scope){
-		$scope.regionModal = {}
-		$scope.regionModal.stack = [{id: 0, name: "World"}];
+		$scope.regionModal = {};
+		$scope.regionModal.currentRegion = {id: 0, name: "World"};
+		//$scope.regionModal.currentRegion.id = 1;
+		//$scope.regionModal.currentRegion.name = "World";
+		$scope.regionModal.list = {};
 		$scope.regionModal.show = false;
 		$scope.regionModal.title = "Select Parent Region";
-		
-		$scope.regionModal.name = "not selected";
-		$scope.regionModal.select = function(){
-			var region = $scope.regionModal.stack[$scope.regionModal.stack.length - 1];
-			$scope.regionModal.name = region.name;
-			$scope.form.parent = region.id;
+
+		$http.post('/ajax/region', {id: $scope.regionModal.currentRegion.id}).then(successRegionCallback, errorRegionCallback);
+
+		function getRegion(id)
+		{
+			if (!$scope.regionModal.list[id]){
+				//console.log("getting region from server");	
+				$http.post('/ajax/region', {id: $scope.regionModal.currentRegion.id}).then(successRegionCallback, errorRegionCallback);
+			}
+			else {
+				var id = $scope.regionModal.currentRegion.id;
+				$scope.regionModal.currentRegion.name = $scope.regionModal.list[id].name;
+				$scope.regionModal.name = $scope.regionModal.currentRegion.name;
+			}
+
+			//the id has not been requested before, so do an SQL query and put it in regionList
+		}
+
+		$scope.back = function() {
+			var id = $scope.regionModal.currentRegion.id;
+			alert("ID: " + id);
+			alert("Parent ID: " + $scope.regionModal.list[id].parent);
+			$scope.regionModal.currentRegion.id = $scope.regionModal.list[id].parent;
+			getRegion(id);
 		}
 		
+		$scope.regionModal.name = "not selected";
+		$scope.regionModal.select = function(id){
+			//var region = $scope.regionModal.stack[$scope.regionModal.stack.length - 1];
+			console.log(id);
+			//$scope.form.parent = region.id;
+			$scope.regionModal.currentRegion.id = id;
+			getRegion(id);
+		}
+
+		function successRegionCallback(response)
+		{
+			//alert(response);
+			console.log(response.data);
+			var id = $scope.regionModal.currentRegion.id;
+			$scope.regionModal.list[id] = response.data;
+			$scope.regionModal.currentRegion.name = $scope.regionModal.list[id].name;
+			$scope.regionModal.name = $scope.regionModal.currentRegion.name;
+			//alert("Name: " + $scope.regionModal.name)
+		}
+
+		function errorRegionCallback(response)
+		{
+			//alert(response);
+			console.log(response);
+		}
+	
 		
 		$scope.typeModal = {}
 		$scope.typeModal.types = {
