@@ -1,28 +1,28 @@
 {{#section 'styles'}}
 {{/section}}
 	{{>navigation_bar}}
-	<div class="container" ng-controller="uploadRegion" ng-submit="submitForm()">
+	<div class="container" ng-controller="uploadRegion" ng-submit="form.submit()">
 		<h1>Upload Region</h1>
 		<form enctype="multipart/form-data" accept-charset="UTF-8">
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.parent}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.parent}">
 				<div class="col-sm-3">
 					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Parent Region</button>
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="regionModal.name" disabled></input>
-					<span class="help-block pull-right" ng-bind="error.parent"></span>
+					<span class="help-block pull-right" ng-bind="form.error.parent"></span>
 				</div>
 			</div>
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.type}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.type}">
 				<div class="col-sm-3">
 					<button type="button" class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Region Type</button>
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="typeModal.name" disabled></input>
-					<span class="help-block pull-right" ng-bind="error.type"></span>
+					<span class="help-block pull-right" ng-bind="form.error.type"></span>
 				</div>
 			</div>
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.data}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.data}">
 				<div class="col-sm-3">
 					<label class="btn btn-primary btn-block">
 						Select File 
@@ -31,7 +31,7 @@
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="fileName" disabled></input>
-					<span class="help-block pull-right" ng-bind="error.data"></span>
+					<span class="help-block pull-right" ng-bind="form.error.data"></span>
 				</div>
 				
 			</div>
@@ -67,8 +67,92 @@
 
 <script type="application/javascript">
     var app = angular.module("myApp", []);
+	
+	app.service("formService", function($http){
+		var self = this;
+		this.data = [];
+		
+		this.submit = function(){
+			self.data.map(titleCase);
+			self.error = uploadRegionValidate(self);
+			if (self.error.none)
+				
+				$http.post('/region/upload', this).then(successCallback, errorCallback);
+		}
+		function successCallback(response){
+			if (response.data.redirect){
+				window.location.href = response.data.redirect;
+			}
+			else if (response.data.message){
+				alert(response.data.message)
+			}
+			else {
+				alert("unknown response");
+			}
+		}
+		
+		function errorCallback(response){
+			alert("an error occured: " + JSON.stringify(response.data))
+		}
+	});
+	
+	
+	app.service("regionService", function($http, formService){
+		var self = this;
+		
+		function getRegion(id)
+		{
+			if (!self.list[id]){	
+				$http.post('/ajax/region', {id: self.currentRegion.id}).then(successRegionCallback, errorRegionCallback);
+			}
+			else {
+				var id = self.currentRegion.id;
+				self.currentRegion.name = self.list[id].name;
+				self.name = self.currentRegion.name;
+			}
+		}
 
-	app.controller("uploadRegion", function($http, $scope){
+		this.currentRegion = {id: 0, name: "World"};
+		this.list = {};
+		this.show = false;
+		this.title = "Select Parent Region";
+		this.name = "not selected";
+
+		this.back = function() {
+			var id = self.currentRegion.id;
+			self.currentRegion.id = self.list[id].parent;
+			getRegion(id);
+		}
+		this.select = function(id){
+			self.currentRegion.id = id;
+			getRegion(id);
+		}
+
+		this.submitRegion = function() {
+			formService.parent = self.currentRegion.id;
+			self.name = self.currentRegion.name;
+		}
+		function successRegionCallback(response)
+		{
+			console.log(response.data);
+			var id = self.currentRegion.id;
+			self.list[id] = response.data;
+			self.currentRegion.name = self.list[id].name;
+		}
+
+		function errorRegionCallback(response)
+		{
+			console.log(response);
+		}
+
+		getRegion(self.currentRegion.id);
+		return self;
+	
+	})
+
+	
+	
+	app.controller("uploadRegion", function($http, $scope, formService, regionService){
 		$scope.typeModal = {}
 		$scope.typeModal.types = {
 			"1": "Country",
@@ -86,40 +170,13 @@
 			$scope.typeModal.show = false;
 		}
 		
-		$scope.form = {};
-		$scope.fileName = "not selected";
-		$scope.form.data = [];
-
-		$scope.regionModal = getRegionModal($scope.form, $http);
-
-		$scope.submitForm = function(){
-			$scope.form.data.map(titleCase);
-			$scope.error = uploadRegionValidate($scope.form);
-			if ($scope.error.none)
-				$http.post('/region/upload', $scope.form).then(successCallback, errorCallback);
-		}
-		
-		function successCallback(response){
-			if (response.data.redirect){
-				window.location.href = response.data.redirect;
-			}
-			else if (response.data.message){
-				alert(response.data.message)
-			}
-			else {
-				alert("unknown response");
-			}
-		}
-		
-		function errorCallback(response){
-			alert("an error occured: " + JSON.stringify(response.data))
-		}
+		$scope.form = formService;
+		$scope.regionModal = regionService;
 	});
 </script>
 <script src="/content/js/filereader.js"></script>
 <script src="/content/js/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>
 <script src="/content/validators/regionupload.js"></script>
-<script src="/content/js/getRegions.js"></script>
 
 {{/section}}
