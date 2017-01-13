@@ -9,6 +9,7 @@
 	flex-direction: column;
 }
 .modal-body{
+	background-color: #f8f8f8;
 	height: 70%;
 	overflow-y: auto;
 }
@@ -19,8 +20,11 @@
   font-size: 36px; //bigger
 }
 
-.top-buffer { 
+.top-buffer{ 
 	margin-top:20px; 
+}
+.right-buffer{
+	margin-right: 20px;
 }
 
 .top-buffer-sm { 

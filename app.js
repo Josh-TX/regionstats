@@ -53,13 +53,22 @@ function getApp(config, database){
 		next();
 	});
 	
-	
-	
 	//***** Routes *****
 	
 	var router = express.Router();
 	//this allows caching anything in the content folder
 	app.use('/content', express.static(path.join(__dirname, 'content')));
+	
+	app.use(function(req, res, next){ //DELAY ALL POST REQUESTS
+		if (req.method == "GET"){
+			next();
+		}
+		else {
+			setTimeout(function(){
+				next();
+			}, 1000);
+		}
+	});
 	
 	var mainRouter = require('./routes/main').getRouter(router, database);
 	app.use(mainRouter);
