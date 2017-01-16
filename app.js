@@ -81,6 +81,9 @@ function getApp(config, database){
 
 	var sourceRouter = require('./routes/sources').getRouter(router, database);
 	app.use(sourceRouter);
+	
+	var dataRouter = require('./routes/data').getRouter(router, database);
+	app.use(dataRouter);
 
 	var ajaxRouter = require('./routes/ajax').getRouter(router, database);
 	app.use(ajaxRouter);

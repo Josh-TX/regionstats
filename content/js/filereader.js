@@ -7,7 +7,7 @@ app.directive("fileReader", function(){
 			var reader = new FileReader();
 			reader.onload = function(e){
 				scope.$apply(function(){
-					scope.data = e.target.result.split("\n")
+					scope.callback({data: e.target.result});
 					scope.name = tempName;
 				});
 			}
@@ -17,7 +17,7 @@ app.directive("fileReader", function(){
 	return {
 		restrict: "A",
 		scope: {
-			data: "=fileReader",
+			callback: "&",
 			name: "=fileName"
 		},
 		link: link

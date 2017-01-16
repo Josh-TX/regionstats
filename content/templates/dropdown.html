@@ -1,0 +1,9 @@
+<div ng-class="{dropdown: true, open: show}">
+	<button type="button" class="btn btn-default" ng-click="show=!show">
+		<span ng-bind="title"></span>
+		<span class="caret"></span>
+	</button>
+	<div class="dropdown-menu">
+		<ng-transclude></ng-transclude>
+	</div>
+</div>

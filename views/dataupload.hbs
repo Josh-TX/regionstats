@@ -1,12 +1,11 @@
 {{#section 'styles'}}
 {{/section}}
 	{{>navigation_bar}}
-	<div class="container" ng-controller="uploadRegion" ng-submit="form.submit()">
-		<h1>Upload Region</h1>
-		<form enctype="multipart/form-data" accept-charset="UTF-8">
+	<div class="container-fluid" ng-controller="uploadRegion" ng-submit="form.submit()">
+		<h1>Upload Data</h1>
 			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.parent}">
 				<div class="col-sm-3">
-					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Parent Region</button>
+					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Region Group</button>
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="regionModal.name" disabled></input>
@@ -15,7 +14,7 @@
 			</div>
 			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.type}">
 				<div class="col-sm-3">
-					<button type="button" class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Region Type</button>
+					<button type="button" class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Source</button>
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="typeModal.name" disabled></input>
@@ -26,7 +25,7 @@
 				<div class="col-sm-3">
 					<label class="btn btn-primary btn-block">
 						Select File 
-						<input type="file" class="hidden" file-reader callback="form.setData(data)" file-name="fileName">
+						<input type="file" class="hidden" file-reader callback="stats.setData(data)" file-name="fileName">
 					</label>
 				</div>
 				<div class="col-sm-9">
@@ -35,18 +34,58 @@
 				</div>
 				
 			</div>
-			<input class="btn btn-primary btn-lg pull-right" type="submit" value="submit"></input>
-		</form>
-		<div ng-if="form.data.length > 0">
-			<h2>preview</h2>
-			<table>
-				<tr>
-					<th ng-bind="typeModal.name"></th>
-				</tr>
-				<tr ng-repeat="region in form.data track by $index">
-					<td ng-bind="region"></td>
-				</tr>
-			</table>
+			<div ng-if="stats.data">
+				inside if
+				<table class="table table-bordered">
+					<tr>
+						<th>Spreadsheet Title</th>
+						<td ng-repeat="header in stats.headers track by $index">{{ng "header"}}</td>
+					</tr>
+					<tr>
+						<th>
+							Category
+							<div class="checkbox">
+								<label>
+									<input type="checkbox" ng-model="cats.sync">
+									Synchronize
+								</label>
+							</div>
+						</th>
+						<td ng-repeat="header in stats.headers track by $index">
+							<div dropdown="typeModal.name">
+								<button class="btn btn-default">test1</button>
+								<button class="btn btn-default">test2</button>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th>Actual Title</th>
+						<td ng-repeat="header in stats.headers track by $index">
+							<div style="position: relative">
+								<textarea class="form-control" rows="3" ng-model="stats.titles[$index]" 
+									ng-focus="focus=true;stats.titleChanged($index)" ng-blur="focus=false"
+									ng-change="stats.titleChanged($index)"></textarea>
+								<div style="position: absolute" ng-if="focus">
+									<div ng-repeat="sugg in stats.suggestions">
+										<button class="btn btn-success" ng-bind="sugg.name"></button>
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th>Year</th>
+						<td ng-repeat="unused in stats.headers track by $index">
+							<input type="text"></input>
+						</td>
+					</tr>
+					<tr ng-repeat="obj in stats.data">
+						<th>{{ng "obj.name"}}</th>
+						<td ng-repeat="value in obj.values track by $index">{{ng "value"}}</th>
+					</tr>
+				</table>
+				<input class="btn btn-primary btn-lg pull-right" type="submit" value="submit"></input>
+			</div>
 		</div>
 		<!-- modal -->
 		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.submitRegion()">
@@ -75,6 +114,7 @@
 <script type="application/javascript">
     var app = angular.module("myApp", []);
 	
+	
 	app.service("formService", function($http){
 		var self = this;
 		this.data = [];
@@ -86,8 +126,8 @@
 				
 				$http.post('/region/upload', this).then(successCallback, errorCallback);
 		}
-		this.setData = function(data){
-			self.data = data.split(/[\n\r]+/);
+		this.setData = function(){
+			//idk
 		}
 		
 		function successCallback(response){
@@ -100,14 +140,37 @@
 			else {
 				alert("unknown response");
 			}
-		}
-		
-		
+		}		
 		function errorCallback(response){
 			alert("an error occured: " + JSON.stringify(response.data))
 		}
+		
 	});
-	
+	app.service("event", function(){
+		var self = this;
+		var events = {};
+		this.on = function (eventName, func) {
+			events[eventName] = events[eventName] || [];
+			events[eventName].push(func);
+		}
+		this.off = function(eventName, func) {
+			if (events[eventName]) {
+				for (var i = 0; i < events[eventName].length; i++) {
+					if (events[eventName][i] === func) {
+						events[eventName].splice(i, 1);
+						break;
+					}
+				}
+			}
+		}
+		this.emit = function (eventName, data) {
+			if (events[eventName]) {
+				events[eventName].forEach(function(func) {
+					func(data);
+				});
+			}
+		}
+	})
 	
 	app.service("regionService", function($http, formService){
 		var self = this;
@@ -143,6 +206,18 @@
 			if (list[self.currentRegion.id]){
 				self.regions = list[self.currentRegion.id].r.filter(passesFilter);
 			}
+		}
+		//meant to be called by other services
+		this.getRegionCallback = function(targetid, callback){
+			if (!list[targetid]){
+				$http.post('/ajax/region', {id: targetid}).then(function(response){
+					list[targetid] = response.data;
+					callback(response.data);
+				}, errorRegionCallback);
+			}
+			else {
+				callback(list[targetid]);
+			}		
 		}
 		
 		function getRegion(targetid)
@@ -197,10 +272,107 @@
 		return self;
 	
 	})
-
+	
+	app.service("statService", function($http, regionService, event){
+		var self = this;
+		this.setData = function(response){
+			var data = Papa.parse(response).data;
+			if (data.length < 2){
+				return;
+			}
+			data[0].shift();
+			self.headers = data[0];
+			self.width = self.headers.length
+			event.emit("width", self.width);
+			self.titles = [];
+			for (var i = 0; i < self.width; i++){
+				self.titles.push("");
+			}
+			data.shift();
+			regionService.getRegionCallback(192, regionCallback.bind(null, data));//hardcoded atm
+		}
+		function regionCallback(data, regionObj){
+			self.data = data.map(arrayToObject.bind(null, regionObj.r));
+			console.log("self.data = " + JSON.stringify(self.data));
+		}
+		function arrayToObject(regionList, arr){
+			var obj = {};
+			var region = regionList.find(function(region){
+				if (region.name.toLowerCase() == arr[0].toLowerCase()){
+					return region;
+				}
+			})
+			if (region){
+				obj.id = region.id;
+				obj.name = region.name;
+				arr.shift();
+				obj.values = arr;
+			}
+			else {
+				obj.error = "Error finding region " + arr[0];
+			}
+			return obj;
+		}
+		
+		
+		self.titleChanged = function(index){
+			var title = self.titles[index];
+			if (title.length < 2){
+			console.log("returning")
+				self.suggestions = [];
+				return;
+			}
+			console.log("not returning")
+			for (var i = 0; i < titleList.length; i++){
+				if (titleList[i].name.filter(title)){
+					console.log("pushed")
+					self.suggestions.push(titleList[i]);
+				}
+			}		
+		}
+		self.suggestions = [];
+		var titleList = [
+			{id: "1", name: "population"},
+			{id: "2", name: "Murders"},
+			{id: "3", name: "Murders per Capita"}
+		]
+	});
+	String.prototype.filter = function(str){
+		var filters = str.toLowerCase().split(/[ ,_\-]+/);
+		var tokens = this.toLowerCase().split(/[ ,\-]+/);
+		for (var i = 0; i < filters.length; i++) {
+			var match = false;
+			for (var j = 0; j < tokens.length; j++) {
+				if (tokens[j].startsWith(filters[i])) {
+					match = true;
+					break;
+				}
+			}
+			if (match == false) {
+				return false;
+			}
+		}
+		return true;
+	}
+	app.service("catService", function(event){
+		event.on("width", function(arg){
+			alert(arg);
+		}                                                                                                          )
+		this.select = function(name){
+			
+		}
+		this.list = [
+			{id: 0, name: "Census"},
+			{id: 1, name: "Crime"},
+			{id: 2, name: "Economics"},
+			{id: 3, name: "Education"},
+			{id: 4, name: "Voting"}
+		]
+	})
 	
 	
-	app.controller("uploadRegion", function($scope, formService, regionService){
+	app.controller("uploadRegion", function($scope, formService, regionService, statService, catService){
+		$scope.cats = catService;
 		$scope.typeModal = {}
 		$scope.typeModal.types = {
 			"1": "Country",
@@ -217,14 +389,16 @@
 			$scope.form.type = id;
 			$scope.typeModal.show = false;
 		}
-		
+		$scope.stats = statService;
 		$scope.form = formService;
 		$scope.regionModal = regionService;
 	});
 </script>
 <script src="/content/js/filereader.js"></script>
 <script src="/content/js/modal.js"></script>
+<script src="/content/js/dropdown.js"></script>
 <script src="/content/js/titlecase.js"></script>
 <script src="/content/validators/regionupload.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
 
 {{/section}}
