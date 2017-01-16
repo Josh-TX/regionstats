@@ -28,6 +28,34 @@ function getRouter(router, database){
 				res.send(obj)
 			})*/
 	});
+
+	router.post('/ajax/regionType', function(req, res, next) {
+		getRegionTypes()
+			.then(function(obj) {
+				res.send(obj);
+			})
+			.catch(function(obj) {
+				res.send(obj);
+			})
+	});
+
+	function getRegionTypes() {
+		return new Promise(function(resolve, reject) {
+			database.mysql.query('SELECT id,name FROM `region_types`', databaseHandler);
+			function databaseHandler(err, result) {
+				if(err) {
+					reject({message: "internal database error"});
+				}
+				if(result.length > 0) {
+					resolve(result);
+				}
+				else {
+					reject({message: "no entries in database!"});
+				}
+			}
+		})
+	};
+
 	function getParentRegion(body){
 		return new Promise(function(resolve, reject){
 			if (body.id == 0)
