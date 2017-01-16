@@ -2,8 +2,13 @@ function getRouter(router, database){
 	/*router.get('/region/upload', function(req, res, next) {
 		res.render('uploadregion');
 	});*/
+
+	router.all("*", function(req, res, next) {
+		console.log("test");
+		next();
+	})
 	
-	router.post('/ajax/region', function(req, res, next) {
+	router.post('/region', function(req, res, next) {
 		//validateObj.upload(req.body)
 		if (!/\d+/.test(req.body.id)){
 			res.send({message: "id not a valid number"});
@@ -29,7 +34,7 @@ function getRouter(router, database){
 			})*/
 	});
 
-	router.post('/ajax/regionType', function(req, res, next) {
+	router.post('/regionType', function(req, res, next) {
 		getRegionTypes()
 			.then(function(obj) {
 				res.send(obj);

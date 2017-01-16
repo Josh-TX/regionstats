@@ -76,9 +76,9 @@
 			self.data.map(titleCase);
 			self.error = uploadRegionValidate(self);
 			if (self.error.none)
-				
-				$http.post('/region/upload', this).then(successCallback, errorCallback);
+				$http.post('/region/upload', self).then(successCallback, errorCallback);
 		}
+
 		function successCallback(response){
 			if (response.data.redirect){
 				window.location.href = response.data.redirect;
@@ -99,18 +99,6 @@
 	
 	app.service("regionService", function($http, formService){
 		var self = this;
-		
-		function getRegion(id)
-		{
-			if (!self.list[id]){	
-				$http.post('/ajax/region', {id: self.currentRegion.id}).then(successRegionCallback, errorRegionCallback);
-			}
-			else {
-				var id = self.currentRegion.id;
-				self.currentRegion.name = self.list[id].name;
-				self.name = self.currentRegion.name;
-			}
-		}
 
 		this.currentRegion = {id: 0, name: "World"};
 		this.list = {};
@@ -127,10 +115,21 @@
 			self.currentRegion.id = id;
 			getRegion(id);
 		}
-
 		this.submitRegion = function() {
 			formService.parent = self.currentRegion.id;
 			self.name = self.currentRegion.name;
+		}
+
+		function getRegion(id)
+		{
+			if (!self.list[id]){	
+				$http.post('/ajax/region', {id: self.currentRegion.id}).then(successRegionCallback, errorRegionCallback);
+			}
+			else {
+				var id = self.currentRegion.id;
+				self.currentRegion.name = self.list[id].name;
+				self.name = self.currentRegion.name;
+			}
 		}
 		function successRegionCallback(response)
 		{
@@ -165,7 +164,7 @@
 		this.name = "not selected";
 
 		this.select = function(id) {
-			self.name = self.types[id];
+			self.name = self.types[id-1].name;
 			formService.type = id;
 			self.show = false;
 		}
@@ -185,8 +184,6 @@
 		return self;
 	})
 
-	
-	
 	app.controller("uploadRegion", function($http, $scope, formService, regionService, typeService){	
 		$scope.form = formService;
 		$scope.regionModal = regionService;
