@@ -1,5 +1,6 @@
 function getRouter(router, database){
-	router.all("/region*", function(req, res, next) {
+	//make sure the user is logged in
+	router.all("*", function(req, res, next) {
 		if (req.session.userid > 0){
 			next();
 		}
@@ -13,27 +14,13 @@ function getRouter(router, database){
 		}
 	});
 
-	
-	router.get('/region/upload', function(req, res, next) {
+	router.get('/upload', function(req, res, next) {
 		res.render('regionupload', {
 			title: "RegionStats"
 		});
 	});
-	
-	router.post('/region/upload', function(req, res, next) {
-		validateObj.upload(req.body)
-			.then(insertSubmission.bind(null, req.session.userid))
-			.then(insertSubRegions)
-			.then(function(){
-				req.session.message = "region successfully uploaded!";
-				res.send({redirect: "/dashboard"})
-			})
-			.catch(function(obj){
-				res.send(obj)
-			})
-	});
-	
-	router.get('/region/edit/:subid', function(req, res, next) {
+
+	router.get('/edit/:subid', function(req, res, next) {
 		getSubmissionInfo(req.params)
 			.then(function(body){
 				var permissions = getPermissions(req.session.userid, req.session.admin, body.submission.user_id);
@@ -53,11 +40,23 @@ function getRouter(router, database){
 		return;
 	});
 	
+	router.post('/upload', function(req, res, next) {
+		validateUpload(req.body)
+			.then(insertSubmission.bind(null, req.session.userid))
+			.then(insertSubRegions)
+			.then(function(){
+				req.session.message = "Region Successfully Uploaded!";
+				res.send({redirect: "/dashboard"})
+			})
+			.catch(function(obj){
+				res.send(obj)
+			})
+	});	
 	
-	router.post('/region/edit', function(req, res, next){
+	router.post('/edit', function(req, res, next){
 		req.body.userid = req.session.userid;
 		req.body.admin =  req.session.admin;
-		validateObj.upload(req.body)
+		validateUpload(req.body)
 			.then(getSubmissionInfo)
 			.then(checkValidAction)
 			.then(function(body){
@@ -66,7 +65,7 @@ function getRouter(router, database){
 						.then(modifySubmission)
 						.then(insertSubRegions)
 						.then(function(){
-							req.session.message = "changes saved";
+							req.session.message = "Changes Saved";
 							res.send({redirect: "/dashboard"})
 						})
 				}
@@ -74,7 +73,7 @@ function getRouter(router, database){
 					deleteSubRegions(body)
 						.then(deleteSubmission)
 						.then(function(){
-							req.session.message = "submission deleted";
+							req.session.message = "Submission Deleted";
 							res.send({redirect: "/dashboard"})
 						})
 				}
@@ -82,14 +81,14 @@ function getRouter(router, database){
 					markSubmission("a", body)
 						.then(insertRegions)
 						.then(function(){
-							req.session.message = "submission approved";
+							req.session.message = "Submission Approved";
 							res.send({redirect: "/dashboard"})
 						})
 				}
 				if (body.action == 'reject'){
 					markSubmission("r", body)
 						.then(function(){
-							req.session.message = "submissin rejected";
+							req.session.message = "Submission Rejected";
 							res.send({redirect: "/dashboard"})
 						})
 				}
@@ -100,7 +99,7 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.post('/region/subregions', function(req, res, next){
+	router.post('/subregions', function(req, res, next){
 		getSubRegions(req.body.subid)
 			.then(function(arr){
 				res.send(arr);
@@ -109,13 +108,10 @@ function getRouter(router, database){
 				res.send(err);
 			})
 	});
-	
-	var validateObj = (function(){
-		var getValidator = require('../modules/getvalidator');
-		var validate = {};
-		validate.upload = getValidator("regionupload");
-		return validate;
-	})();
+
+	//getValidator is a function that takes in a filename and returns a function that returns a promise
+	var getValidator = require('../modules/getvalidator');
+	validateUpload = getValidator("regionupload");
 	
 	function getSubRegions(subid){
 		return new Promise(function(resolve, reject){
@@ -233,7 +229,7 @@ function getRouter(router, database){
 					return;
 				}
 				if (result.length == 0) {
-					reject({message: "submission not found"});
+					reject({message: "Submission not found"});
 					return;
 				}
 				body.submission = result[0];

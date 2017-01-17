@@ -2,8 +2,8 @@ function getRouter(router, database){
 	/*router.get('/region/upload', function(req, res, next) {
 		res.render('uploadregion');
 	});*/
-	
-	router.post('/ajax/region', function(req, res, next) {
+
+	router.post('/region', function(req, res, next) {
 		//validateObj.upload(req.body)
 		if (!/\d+/.test(req.body.id)){
 			res.send({message: "id not a valid number"});
@@ -28,6 +28,37 @@ function getRouter(router, database){
 				res.send(obj)
 			})*/
 	});
+
+	router.post('/regionType', function(req, res, next) {
+		getRegionTypes()
+			.then(function(obj) {
+				res.send(obj);
+			})
+			.catch(function(obj) {
+				res.send(obj);
+			})
+	});
+
+	function getRegionTypes() {
+		return new Promise(function(resolve, reject) {
+			database.mysql.query('SELECT id,name FROM `region_types`', databaseHandler);
+			function databaseHandler(err, result) {
+				if(err) {
+					reject({message: "internal database error"});
+					return;
+				}
+				if(result.length > 0) {
+					resolve(result);
+					return;
+				}
+				else {
+					reject({message: "no entries in database!"});
+					return;
+				}
+			}
+		})
+	};
+
 	function getParentRegion(body){
 		return new Promise(function(resolve, reject){
 			if (body.id == 0)

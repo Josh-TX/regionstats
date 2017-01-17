@@ -66,7 +66,7 @@
 		</div>
 
 		<div modal="typeModal.show" str="typeModal.title">
-			<button class="btn btn-default" ng-repeat="(id, name) in typeModal.types" ng-click="typeModal.select(id)">{{ng "name"}}</button>
+			<button class="btn btn-default" ng-repeat="data in typeModal.types" ng-click="typeModal.select(data.id)">{{ng "data.name"}}</button>
 		</div>
 	</div><!-- end container -->
 	
@@ -83,13 +83,11 @@
 			self.data.map(titleCase);
 			self.error = uploadRegionValidate(self);
 			if (self.error.none)
-				
-				$http.post('/region/upload', this).then(successCallback, errorCallback);
+				$http.post('/region/upload', self).then(successCallback, errorCallback);
 		}
 		this.setData = function(data){
 			self.data = data.split(/[\n\r]+/);
 		}
-		
 		function successCallback(response){
 			if (response.data.redirect){
 				window.location.href = response.data.redirect;
@@ -198,28 +196,45 @@
 	
 	})
 
-	
-	
-	app.controller("uploadRegion", function($scope, formService, regionService){
-		$scope.typeModal = {}
-		$scope.typeModal.types = {
-			"1": "Country",
-			"2": "City",
-			"3": "State",
-			"4": "Territory",
-			"5": "Province"
+	app.service("typeService", function($http, formService) {
+		var self = this;
+
+		this.types = {};
+
+		function getTypes() {
+			if (!self.types[0])
+				$http.post('/ajax/regionType').then(successRegionCallback, errorRegionCallback);
 		}
-		$scope.typeModal.show = false;
-		$scope.typeModal.title = "Select Region Type";
-		$scope.typeModal.name = "not selected";
-		$scope.typeModal.select = function(id){
-			$scope.typeModal.name = this.types[id];
-			$scope.form.type = id;
-			$scope.typeModal.show = false;
+
+		this.show = false;
+		this.title = "Select Region Type";
+		this.name = "not selected";
+
+		this.select = function(id) {
+			self.name = self.types[id-1].name;
+			formService.type = id;
+			self.show = false;
 		}
-		
+
+		function successRegionCallback(response)
+		{
+			//console.log(response.data);
+			self.types = response.data;
+		}
+
+		function errorRegionCallback(response)
+		{
+			console.log(response);
+		}
+
+		getTypes();
+		return self;
+	})
+
+	app.controller("uploadRegion", function($http, $scope, formService, regionService, typeService){	
 		$scope.form = formService;
 		$scope.regionModal = regionService;
+		$scope.typeModal = typeService;
 	});
 </script>
 <script src="/content/js/filereader.js"></script>

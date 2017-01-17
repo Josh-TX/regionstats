@@ -14,6 +14,7 @@ function getApp(config, database){
 
 	var hbs = require('express-handlebars');
 	var helpers = require('./modules/helpers');
+
 	//set the engine to handlebars, the extension to hbs, and layout file to layout
 	app.engine('hbs', hbs({
 		extname: 'hbs', 
@@ -22,9 +23,9 @@ function getApp(config, database){
 		partialsDir: __dirname + '/views/partials/',
 		helpers: helpers 
 	}));
+
 	//this sets the view folder to be views
 	app.set('views', path.join(__dirname, 'views'));
-	//this might be unnecessary
 	app.set('view engine', 'hbs');
 
 	
@@ -32,6 +33,7 @@ function getApp(config, database){
 	//***** Middleware *****
 
 	app.use(favicon(path.join(__dirname, 'content', 'favicon.ico')));
+	
 	//this parses the post requests
 	app.use(bodyParser.json());
 	app.use(bodyParser.urlencoded({extended: false}));
@@ -39,8 +41,10 @@ function getApp(config, database){
 	
 	//***** Session variables *****
 	
-	app.use(expressSession({secret: 'idk', saveUninitialized: false, resave: false})) 
-	app.use(function(req, res, next){
+	app.use(expressSession({secret: config.secret, saveUninitialized: false, resave: false})) 
+	
+	//Make views have access to session variables
+	app.use(function(req, res, next) {
 		if (!req.session.userid > 0)
 			req.session.userid = 0;
 		res.locals.session = {}
@@ -55,7 +59,7 @@ function getApp(config, database){
 	
 	//***** Routes *****
 	
-	var router = express.Router();
+	//var router = express.Router();
 	//this allows caching anything in the content folder
 	app.use('/content', express.static(path.join(__dirname, 'content')));
 	
@@ -70,23 +74,20 @@ function getApp(config, database){
 		}
 	});
 	
-	var mainRouter = require('./routes/main').getRouter(router, database);
+	var mainRouter = require('./routes/main').getRouter(express.Router(), database);
 	app.use(mainRouter);
 	
-	var loginRouter = require('./routes/login').getRouter(router, database);
+	var loginRouter = require('./routes/login').getRouter(express.Router(), database);
 	app.use(loginRouter);
 	
-	var regionRouter = require('./routes/region').getRouter(router, database);
-	app.use(regionRouter);
+	var regionRouter = require('./routes/region').getRouter(express.Router(), database);
+	app.use("/region", regionRouter);
 
-	var sourceRouter = require('./routes/sources').getRouter(router, database);
-	app.use(sourceRouter);
-	
-	var dataRouter = require('./routes/data').getRouter(router, database);
-	app.use(dataRouter);
+	var sourceRouter = require('./routes/sources').getRouter(express.Router(), database);
+	app.use("/source", sourceRouter);
 
-	var ajaxRouter = require('./routes/ajax').getRouter(router, database);
-	app.use(ajaxRouter);
+	var ajaxRouter = require('./routes/ajax').getRouter(express.Router(), database);
+	app.use("/ajax", ajaxRouter);
 	
 	
 
@@ -94,10 +95,10 @@ function getApp(config, database){
 	
 	// ***** Error handling *****
 	
-	app.use(function(req, res, next){
+	/*app.use(function(req, res, next){
 		res.locals.test = app.get('env')
 		next();
-	});
+	});*/
 	app.use(function(req, res, next) {
 	  var err = new Error('Not Found');
 	  err.status = 404;

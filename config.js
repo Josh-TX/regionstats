@@ -1,7 +1,7 @@
 var config = {};
 
 config.port = 3000
-config.secret = "randomstring";
+config.secret = "RandomizeMePlease";
 
 config.mongo = {};
 config.mongo.host = "localhost:27017";
