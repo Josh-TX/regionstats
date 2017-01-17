@@ -1,5 +1,7 @@
 function getRouter(router, database){
-	router.all("/dataX*", function(req, res, next) {
+	console.log("test");
+	router.all("*", function(req, res, next) {
+		
 		if (req.session.userid > 0){
 			next();
 		}
@@ -14,13 +16,13 @@ function getRouter(router, database){
 	});
 
 	
-	router.get('/data/upload', function(req, res, next) {
+	router.get('/upload', function(req, res, next) {
 		res.render('dataupload', {
 			title: "RegionStats"
 		});
 	});
 	
-	router.post('/data/upload', function(req, res, next) {
+	router.post('/upload', function(req, res, next) {
 		res.send(req.body);
 		return;
 		validateObj.upload(req.body)
@@ -35,7 +37,7 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.get('/region/edit/:subid', function(req, res, next) {
+	router.get('/edit/:subid', function(req, res, next) {
 		getSubmissionInfo(req.params)
 			.then(function(body){
 				var permissions = getPermissions(req.session.userid, req.session.admin, body.submission.user_id);
@@ -56,7 +58,7 @@ function getRouter(router, database){
 	});
 	
 	
-	router.post('/region/edit', function(req, res, next){
+	router.post('/edit', function(req, res, next){
 		req.body.userid = req.session.userid;
 		req.body.admin =  req.session.admin;
 		validateObj.upload(req.body)
@@ -102,7 +104,7 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.post('/region/subregions', function(req, res, next){
+	router.post('/subregions', function(req, res, next){
 		getSubRegions(req.body.subid)
 			.then(function(arr){
 				res.send(arr);
