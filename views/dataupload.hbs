@@ -85,7 +85,7 @@
 							</div>
 						</th>
 						<td ng-repeat="str in year.years track by $index">
-							<input type="text" class="form-control" ng-model="year.years[$index]" ng-change="year.change($index)"></input>
+							<input type="number" class="form-control" ng-model="year.years[$index]" ng-change="year.change($index)"></input>
 						</td>
 					</tr>
 					<tr ng-repeat="obj in csv.data">
@@ -436,8 +436,10 @@
 		this.sync = false;
         this.years = [];
 		this.change = function(index){
+			var str = self.years[index];
+			if (str.length > 4)
+				str = str.substring(0, 4);
 			if (self.sync){
-				var str = self.years[index];
 				for (var i = 0; i < statCount; i++){
 					self.years[i] = str;
 				}
