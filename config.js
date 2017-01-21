@@ -10,7 +10,7 @@ config.mongo.username = "username";
 config.mongo.password = "password";
 
 config.mysql = {};
-config.mysql.host = "localhost";
+config.mysql.host = "127.0.0.1";
 config.mysql.db = "main";
 config.mysql.username = "root";
 config.mysql.password = "";

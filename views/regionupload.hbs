@@ -9,7 +9,7 @@
 					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Parent Region</button>
 				</div>
 				<div class="col-sm-9">
-					<input type="text" class="form-control" ng-model="regionModal.name" disabled></input>
+					<input type="text" class="form-control" ng-model="form.parentName" disabled></input>
 					<span class="help-block pull-right" ng-bind="form.error.parent"></span>
 				</div>
 			</div>
@@ -18,7 +18,7 @@
 					<button type="button" class="btn btn-primary btn-block" ng-click="typeModal.show=true">Select Region Type</button>
 				</div>
 				<div class="col-sm-9">
-					<input type="text" class="form-control" ng-model="typeModal.name" disabled></input>
+					<input type="text" class="form-control" ng-model="form.typeName" disabled></input>
 					<span class="help-block pull-right" ng-bind="form.error.type"></span>
 				</div>
 			</div>
@@ -49,18 +49,18 @@
 			</table>
 		</div>
 		<!-- modal -->
-		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.submitRegion()">
+		<div modal="regionModal.show" str="'Select Parent Region'" callback="regionModal.submit()">
 			<div class="row">
 				<div class="col-xs-6">
 					<button class="btn btn-default pull-left right-buffer" ng-click="regionModal.back()" ng-if="regionModal.isNotWorld()">back</button>
-					<h2 class="top-no-buffer"><small ng-bind="regionModal.currentRegion.name"></small></h2>
+					<h2 class="top-no-buffer"><small ng-bind="regionModal.getCurrentName()"></small></h2>
 				</div>
 				<div class="col-xs-6">
 					<input type="text" class="form-control" placeholder="filter" ng-model="regionModal.filter" ng-change="regionModal.filterChanged()"></input>
 				</div>
 			</div>
 			<hr>
-			<button class="btn btn-default" ng-repeat="data in regionModal.regions" ng-click="regionModal.select(data.id)">{{ng "data.name"}}</button>
+			<button class="btn btn-default" ng-repeat="item in regionModal.regions" ng-click="regionModal.select(item.id)">{{ng "item.name"}}</button>
 			<p ng-if="regionModal.isEmpty()">No sub-regions found</p>
 			<p ng-if="regionModal.loading">Loading...</p>
 		</div>
@@ -71,23 +71,36 @@
 	</div><!-- end container -->
 	
 {{#section 'scripts'}}
-
 <script type="application/javascript">
-    var app = angular.module("myApp", []);
-	
-	app.service("formService", function($http){
+	app.service("formService", function($http, event){
 		var self = this;
 		this.data = [];
+		this.parentName = "not selected";
+		this.typeName = "not selected";
 		
 		this.submit = function(){
-			self.data.map(titleCase);
-			self.error = uploadRegionValidate(self);
+			var obj = {
+				parent: self.parent,
+				type: self.type,
+				data: self.data
+			}
+			obj.data.map(titleCase);
+			self.error = uploadRegionValidate(obj);
 			if (self.error.none)
-				$http.post('/region/upload', self).then(successCallback, errorCallback);
+				$http.post('/region/upload', obj).then(successCallback, errorCallback);
 		}
 		this.setData = function(data){
 			self.data = data.split(/[\n\r]+/);
 		}
+		
+		event.listen("regionSubmitted", function(id, name){
+			self.parent = id;
+			self.parentName = name;
+		})
+		event.listen("typeSubmitted", function(id, name){
+			self.type = id;
+			self.typeName = name;
+		})
 		function successCallback(response){
 			if (response.data.redirect){
 				window.location.href = response.data.redirect;
@@ -99,144 +112,21 @@
 				alert("unknown response");
 			}
 		}
-		
-		
 		function errorCallback(response){
 			alert("an error occured: " + JSON.stringify(response.data))
 		}
 	});
 	
-	
-	app.service("regionService", function($http, formService){
-		var self = this;
-		var list = {};
-		
-		this.filter = "";
-		this.currentRegion = {id: 0, name: "World"};
-		this.show = false;
-		this.title = "Select Parent Region";
-		this.name = "not selected";
-		this.regions = [];
-		this.loading = true;
-		getRegion(0);
-		
-		this.back = function() {
-			var id = self.currentRegion.id;;
-			getRegion(list[id].parent);
-		}
-		this.select = function(id){
-			getRegion(id);
-		}
-		this.submitRegion = function() {
-			formService.parent = self.currentRegion.id;
-			self.name = self.currentRegion.name;
-		}		
-		this.isEmpty = function(){
-			return list[self.currentRegion.id] && list[self.currentRegion.id].r.length == 0;
-		}
-		this.isNotWorld = function(){
-			return self.currentRegion.id != 0;
-		}
-		this.filterChanged = function(){
-			if (list[self.currentRegion.id]){
-				self.regions = list[self.currentRegion.id].r.filter(passesFilter);
-			}
-		}
-		
-		function getRegion(targetid)
-		{
-			var oldid = self.currentRegion.id
-			self.currentRegion.id = targetid;
-			self.filter = "";
-			if (!list[targetid]){	
-				$http.post('/ajax/region', {id: self.currentRegion.id}).then(successRegionCallback, errorRegionCallback);
-				if (list[oldid]){
-					self.currentRegion.name = list[oldid].r.find( function(obj){return obj.id == targetid} ).name;
-				}
-				self.loading = true;
-				self.regions = [];
-			}
-			else {
-				self.currentRegion.name = list[targetid].name;
-				self.regions = list[targetid].r;
-			}
-		}
-		function successRegionCallback(response)
-		{
-			console.log(response.data);
-			var id = self.currentRegion.id;
-			list[id] = response.data;
-			self.currentRegion.name = list[id].name;
-			self.regions = list[id].r;
-			self.loading = false;
-		}
-		function errorRegionCallback(response)
-		{
-			console.log(response);
-		}
-		function passesFilter(obj){
-			var filters = self.filter.toLowerCase().split(/[ ,_\-]+/);
-			var tokens = obj.name.toLowerCase().split(/[ ,\-]+/);
-			for (var i = 0; i < filters.length; i++) {
-				var match = false;
-				for (var j = 0; j < tokens.length; j++) {
-					if (tokens[j].startsWith(filters[i])) {
-						match = true;
-						break;
-					}
-				}
-				if (match == false) {
-					return false;
-				}
-			}
-			return true;
-		}
 
-		return self;
-	
-	})
-
-	app.service("typeService", function($http, formService) {
-		var self = this;
-
-		this.types = {};
-
-		function getTypes() {
-			if (!self.types[0])
-				$http.post('/ajax/regionType').then(successRegionCallback, errorRegionCallback);
-		}
-
-		this.show = false;
-		this.title = "Select Region Type";
-		this.name = "not selected";
-
-		this.select = function(id) {
-			self.name = self.types[id-1].name;
-			formService.type = id;
-			self.show = false;
-		}
-
-		function successRegionCallback(response)
-		{
-			//console.log(response.data);
-			self.types = response.data;
-		}
-
-		function errorRegionCallback(response)
-		{
-			console.log(response);
-		}
-
-		getTypes();
-		return self;
-	})
-
-	app.controller("uploadRegion", function($http, $scope, formService, regionService, typeService){	
+	app.controller("uploadRegion", function($scope, formService, regionService, typeService){	
 		$scope.form = formService;
 		$scope.regionModal = regionService;
 		$scope.typeModal = typeService;
 	});
 </script>
+<script src="/content/js/regionservice.js"></script>
+<script src="/content/js/typeservice.js"></script>
+
 <script src="/content/js/filereader.js"></script>
 <script src="/content/js/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>

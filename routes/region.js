@@ -40,6 +40,12 @@ function getRouter(router, database){
 		return;
 	});
 	
+	router.get('/group', function(req, res, next){
+		res.render('regiongroup', {
+			title: "RegionStats"
+		});
+	})
+	
 	router.post('/upload', function(req, res, next) {
 		validateUpload(req.body)
 			.then(insertSubmission.bind(null, req.session.userid))
@@ -115,7 +121,7 @@ function getRouter(router, database){
 	
 	function getSubRegions(subid){
 		return new Promise(function(resolve, reject){
-			database.mysql.query('SELECT name, region_type_id, parent_id FROM sub_regions WHERE sub_id = ?', 
+			database.mysql.query('SELECT name, region_type_id AS type, parent_id AS parent FROM sub_regions WHERE sub_id = ?', 
 			[subid], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
