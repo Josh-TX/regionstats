@@ -26,6 +26,8 @@ app.service("typeService", function($http, event) {
 			}, 200);
 			return;
 		}
+		console.log(Array.isArray(self.types))
+		console.log(typeof self.types)
 		var type = self.types.find(function(obj){
 			console.log(obj.id, id);
 			return obj.id == id;
@@ -35,7 +37,13 @@ app.service("typeService", function($http, event) {
 	
 	function successRegionCallback(response)
 	{
-		self.types = response.data;
+		if (response.data.message){
+			alert(response.data.message)
+			self.types = [];
+		} else {
+			self.types = response.data;
+		}
+		
 	}
 	function errorRegionCallback(response)
 	{

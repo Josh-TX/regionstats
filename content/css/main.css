@@ -55,3 +55,29 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
 }
+
+.sidebar-content{
+	transition: left 0.5s;
+	background-color: #111;
+	position: fixed;
+	left: 105%;
+	width: 70%;
+	top: 0;
+	bottom: 0;
+	z-index: 1050;
+}
+sidebar-header{
+	position: absolute;
+	left: 0;
+	right: 0;
+	color: white;
+	background: #333;
+}
+sidebar-body{
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: #000;
+	overflow-y: scroll;
+}

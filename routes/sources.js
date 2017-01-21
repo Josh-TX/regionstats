@@ -1,5 +1,5 @@
 function getRouter(router, database){
-	router.all("/source", function(req, res, next) {
+	router.all("*", function(req, res, next) {
 		if (req.session.userid > 0){
 			next();
 		}
@@ -14,11 +14,11 @@ function getRouter(router, database){
 	});
 
 	
-	router.get('/source/upload', function(req, res, next) {
+	router.get('/upload', function(req, res, next) {
 		res.render('sourceupload');
 	});
 	
-	router.post('/source/upload', function(req, res, next) {
+	router.post('/upload', function(req, res, next) {
 		validateObj.upload(req.body)
 			.then(insertSubmission.bind(null, req.session.userid))
 			.then(insertSubSources)
@@ -31,7 +31,7 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.get('/source/edit/:subid', function(req, res, next) {
+	router.get('/edit/:subid', function(req, res, next) {
 		getSubmissionInfo(req.params)
 			.then(function(body){
 				var permissions = getPermissions(req.session.userid, req.session.admin, body.submission.user_id);
@@ -52,7 +52,7 @@ function getRouter(router, database){
 	});
 	
 	
-	router.post('/source/edit', function(req, res, next){
+	router.post('/edit', function(req, res, next){
 		req.body.userid = req.session.userid;
 		req.body.admin =  req.session.admin;
 		validateObj.upload(req.body)
@@ -98,7 +98,7 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.post('/source/subsources', function(req, res, next){
+	router.post('/subsources', function(req, res, next){
 		getSubSources(req.body.subid)
 			.then(function(arr){
 				res.send(arr);

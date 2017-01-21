@@ -4,7 +4,7 @@
 	<div class="container" ng-controller="uploadRegion">
 		<h1>Region Submission</h1>
 		<hr>
-		<form enctype="multipart/form-data" accept-charset="UTF-8" ng-submit="submitForm()">
+		<form enctype="multipart/form-data" accept-charset="UTF-8" ng-submit="form.submit()">
 			
 			<h2>Parent Region</h2>
 			<div class="row">
@@ -75,28 +75,17 @@
 					<h4>Actions</h4>
 				</div>
 			</div>			
-			{{ng "obj.test"}}
 			<div class="row" ng-repeat="region in form.data" 
-				ng-class="{'has-success':(region != '*deleted*' && region != form.originals[$index].name), 'has-error': (region == '*deleted*')}">
+				ng-class="{'has-success':(region.name != '*deleted*' && region.name != form.originals[$index].name), 'has-error': (region.name == '*deleted*')}">
 				<div class="col-sm-4">
 					<label class="help-block" ng-bind="form.originals[$index].name"></label>
 				</div>
 				<div class="col-sm-4">
-					<input type="text" class="form-control" ng-model="form.data[$index]"></input>
+					<input type="text" class="form-control" ng-model="region.name"></input>
 				</div>
 				<div class="col-sm-4 btn-group">
-					<button type="button" class="btn btn-default" ng-click="region=form.originals[$index].name">Reset</button>
-					<button type="button" class="btn btn-default" ng-click="region='*deleted*'">Delete</button>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-sm-4">
-					<label class="help-block">testing</label>
-				</div>
-				<div class="col-sm-4">
-					<input type="text" class="form-control" ng-model="obj.test"></input>
-				</div>
-				<div class="col-sm-4 btn-group">
+					<button type="button" class="btn btn-default" ng-click="region.name=form.originals[$index].name">Reset</button>
+					<button type="button" class="btn btn-default" ng-click="region.name='*deleted*'">Delete</button>
 				</div>
 			</div>
 			{{#if permissions.save}}
@@ -130,7 +119,7 @@
 			<p ng-if="regionModal.loading">Loading...</p>
 		</div>
 		<div modal="typeModal.show" str="typeModal.title">
-			<button class="btn btn-default" ng-repeat="(id, name) in typeModal.types" ng-click="typeModal.select(id)">{{ng "name"}}</button>
+			<button class="btn btn-default" ng-repeat="data in typeModal.types" ng-click="typeModal.select(data.id)">{{ng "data.name"}}</button>
 		</div>
 	</div><!-- end container -->
 	
@@ -152,15 +141,18 @@
 		this.originalTypeName = "loading...";
 		
 		this.submit = function(){
+			var strArray = self.data.map(function(obj){return obj.name})
 			var obj = {
+				action: self.action,
+				subid: this.subid,
 				parent: self.parent,
 				type: self.type,
-				data: self.data
+				data: strArray
 			}
 			obj.data.map(titleCase);
 			self.error = uploadRegionValidate(obj);
 			if (self.error.none)
-				$http.post('/region/upload', obj).then(successCallback, errorCallback);
+				$http.post('/region/edit', obj).then(successCallback, errorCallback);
 		}
 		this.setData = function(data){
 			self.data = data.split(/[\n\r]+/);
@@ -198,7 +190,7 @@
 				event.requestAsync("getTypeName", typeNameHandler, self.type);
 				
 				for (var i = 0; i < self.originals.length; i++){
-					self.data.push(self.originals[i].name);
+					self.data.push({name: self.originals[i].name});
 				}
 			})
 		}
@@ -220,12 +212,11 @@
 		$scope.typeModal = typeService;
 	});
 </script>
-<script src="/content/js/regionservice.js"></script>
-<script src="/content/js/typeservice.js"></script>
+<script src="/content/services/region.js"></script>
+<script src="/content/services/type.js"></script>
 
-<script src="/content/js/modal.js"></script>
+<script src="/content/directives/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>
 <script src="/content/validators/regionupload.js"></script>
-<script src="/content/js/getRegions.js"></script
 
 {{/section}}

@@ -1,5 +1,4 @@
 function getRouter(router, database){
-	console.log("test");
 	router.all("*", function(req, res, next) {
 		
 		if (req.session.userid > 0){

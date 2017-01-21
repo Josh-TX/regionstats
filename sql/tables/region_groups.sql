@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 17, 2017 at 09:35 PM
--- Server version: 10.1.16-MariaDB
--- PHP Version: 5.6.24
+-- Generation Time: Jan 21, 2017 at 07:15 AM
+-- Server version: 10.1.9-MariaDB
+-- PHP Version: 5.6.15
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -28,9 +28,9 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `region_groups` (
   `id` mediumint(8) UNSIGNED NOT NULL,
-  `region_id` mediumint(9) NOT NULL,
-  `admin_id` int(11) NOT NULL,
-  `region_type_id` tinyint(4) NOT NULL
+  `sub_id` int(9) UNSIGNED NOT NULL,
+  `region_id` mediumint(11) UNSIGNED NOT NULL,
+  `region_type_id` tinyint(4) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --

@@ -8,22 +8,40 @@
 <p style="padding-left: 10px;">{{makeLink " View users in mysql server" "mysql"}}</p>
 <!--<p style="padding-left: 10px;">{{makeLink " View users in mongodb server" "mongo"}}</p>-->
 
-<div ng-app="myApp" style="padding-left: 10px;" ng-controller="viewRegions">
-	<h1>List of Regions in {{ng "regionModal.currentRegion.name"}}</h1>
-	<button ng-click="regionModal.back()" ng-if="regionModal.list[regionModal.currentRegion.id].parent != -1">back</button>
-	<hr>
-	<button class="btn btn-default" ng-repeat="data in regionModal.list[regionModal.currentRegion.id].r" ng-click="regionModal.select(data.id)">{{ng "data.name"}}</button>
-	<p ng-if="regionModal.list[regionModal.currentRegion.id].r.length == 0">No sub-regions found</p>
-</div>
+<div ng-controller="viewRegions">
 
+	<button class="btn btn-primary" ng-click="show=!show"> show Sidebar</button>
+	<div sidebar="show">
+		<sidebar-header>
+			<div class="row">
+				<div class="col-xs-6">
+					<button class="btn btn-default" ng-click="regionSidebar.back()">back</button>
+				</div>
+				<div class="col-xs-6">
+					<input type="text" class="form-control" placeholder="filter" ng-model="regionSidebar.filter" ng-change="regionSidebar.filterChanged()"></input>
+				</div>				
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<h2 ng-bind="regionSidebar.getCurrentName()"></h2>
+				</div>
+			</div>
+		</sidebar-header>
+		<sidebar-body>
+			<button class="btn btn-default" ng-repeat="item in regionSidebar.regions" ng-click="regionSidebar.select(item.id)">{{ng "item.name"}}</button>
+			<p ng-if="regionSidebar.isEmpty()">No sub-regions found</p>
+			<p ng-if="regionSidebar.loading">Loading...</p>
+		</sidebar-body>
+	</div>	
+</div>
 {{#section 'scripts'}}
 
-<script type="application/javascript">
-var app = angular.module('myApp', []);
-app.controller("viewRegions", function($scope, $http) {
-	$scope.regionModal = getRegionModal($scope.form, $http);
+<script>
+app.controller("viewRegions", function($scope, regionService) {
+	$scope.regionSidebar = regionService;
 })
 
 </script>
-<script src="/content/js/getRegions.js"></script>
+<script src="/content/services/region.js"></script>
+<script src="/content/directives/sidebar.js"></script>
 {{/section}}

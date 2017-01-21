@@ -1,6 +1,8 @@
 function getRouter(router, database){
 	//make sure the user is logged in
+	var globalResponse;
 	router.all("*", function(req, res, next) {
+		globalResponse = res;
 		if (req.session.userid > 0){
 			next();
 		}
@@ -40,11 +42,6 @@ function getRouter(router, database){
 		return;
 	});
 	
-	router.get('/group', function(req, res, next){
-		res.render('regiongroup', {
-			title: "RegionStats"
-		});
-	})
 	
 	router.post('/upload', function(req, res, next) {
 		validateUpload(req.body)
@@ -54,9 +51,7 @@ function getRouter(router, database){
 				req.session.message = "Region Successfully Uploaded!";
 				res.send({redirect: "/dashboard"})
 			})
-			.catch(function(obj){
-				res.send(obj)
-			})
+			.catch(errorHandler)
 	});	
 	
 	router.post('/edit', function(req, res, next){
@@ -74,6 +69,7 @@ function getRouter(router, database){
 							req.session.message = "Changes Saved";
 							res.send({redirect: "/dashboard"})
 						})
+						.catch(errorHandler)
 				}
 				if (body.action == 'delete'){
 					deleteSubRegions(body)
@@ -82,14 +78,17 @@ function getRouter(router, database){
 							req.session.message = "Submission Deleted";
 							res.send({redirect: "/dashboard"})
 						})
+						.catch(errorHandler)
 				}
 				if (body.action == 'approve'){
 					markSubmission("a", body)
 						.then(insertRegions)
+						.then(insertRegionGroup)
 						.then(function(){
 							req.session.message = "Submission Approved";
 							res.send({redirect: "/dashboard"})
 						})
+						.catch(errorHandler)
 				}
 				if (body.action == 'reject'){
 					markSubmission("r", body)
@@ -97,12 +96,11 @@ function getRouter(router, database){
 							req.session.message = "Submission Rejected";
 							res.send({redirect: "/dashboard"})
 						})
+						.catch(errorHandler)
 				}
 				
 			})
-			.catch(function(err){
-				res.send(err)
-			})
+			.catch(errorHandler)
 	});
 	
 	router.post('/subregions', function(req, res, next){
@@ -110,10 +108,13 @@ function getRouter(router, database){
 			.then(function(arr){
 				res.send(arr);
 			})
-			.catch(function(err){
-				res.send(err);
-			})
+			.catch(errorHandler)
 	});
+	
+	function errorHandler(obj){
+		console.log(obj);
+		globalResponse.send(obj);
+	}
 
 	//getValidator is a function that takes in a filename and returns a function that returns a promise
 	var getValidator = require('../modules/getvalidator');
@@ -260,6 +261,33 @@ function getRouter(router, database){
 				resolve(body);
 			}
 		});
+	}
+	
+	function insertRegionGroup(body){
+		return new Promise(function(resolve, reject){	
+			database.mysql.query('SELECT id FROM region_groups WHERE region_id = ? AND region_type_id = ?', 
+				[body.parent, body.type], databaseHandler);
+			function databaseHandler(err, result) {
+				if (err){
+					reject({message: "internal database error: " + err.message});
+					return;
+				}
+				if (result.length > 0){ //region group already exists
+					resolve(body);
+					return;
+				}
+				database.mysql.query('INSERT INTO region_groups (sub_id, region_id, region_type_id) VALUES (?, ?, ?)', 
+					[body.subid, body.parent, body.type], insertionHandler);
+			}
+			function insertionHandler(err, result){
+				if (err){
+					reject({message: "internal database error: " + err.message});
+					return;
+				}
+				console.log("region group inserted")
+				resolve(body);
+			}
+		});	
 	}
 	
 	function insertSubRegions(body){

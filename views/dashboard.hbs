@@ -71,8 +71,6 @@
 {{#section 'scripts'}}
 
 <script type="application/javascript">
-    var app = angular.module("myApp", []);
-
 	app.controller("dashboardCtrl", function($http, $scope){
 		$http.post("/dashboard", {}).then(submissionHandler, errorCallback)
 		$scope.submission = {}
@@ -95,5 +93,4 @@
 	});
 	
 </script>
-<script src="/content/validators/login.js"></script>
 {{/section}}

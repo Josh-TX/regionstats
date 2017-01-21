@@ -2,7 +2,7 @@
 {{/section}}
 	{{>navigation_bar}}
 	<div class="container" ng-controller="uploadRegion" ng-submit="form.submit()">
-		<h1>Upload Region</h1>
+		<h1>Define Region Group</h1>
 		<form enctype="multipart/form-data" accept-charset="UTF-8">
 			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.parent}">
 				<div class="col-sm-3">
@@ -124,11 +124,11 @@
 		$scope.typeModal = typeService;
 	});
 </script>
-<script src="/content/js/regionservice.js"></script>
-<script src="/content/js/typeservice.js"></script>
+<script src="/content/services/region.js"></script>
+<script src="/content/services/type.js"></script>
 
-<script src="/content/js/filereader.js"></script>
-<script src="/content/js/modal.js"></script>
+<script src="/content/directives/filereader.js"></script>
+<script src="/content/directives/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>
 <script src="/content/validators/regionupload.js"></script>
 
