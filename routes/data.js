@@ -172,7 +172,7 @@ function getRouter(router, database){
 					reject({message: "internal database error: "  + err.message});
 					return;
 				}
-				var body.stats = [];
+				body.stats = [];
 				var insertId = result.insertId;
 				for (var i = 0; i < body.titles.length; i++){
 					body.stats.unshift(insertId);
