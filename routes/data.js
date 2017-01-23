@@ -22,16 +22,18 @@ function getRouter(router, database){
 	});
 	
 	router.post('/upload', function(req, res, next) {
-		res.send(req.body);
-		return;
-		validateObj.upload(req.body)
-			.then(insertSubmission.bind(null, req.session.userid))
-			.then(insertSubRegions)
+		req.body.userid = req.session.userid;
+		req.body.type = "d";
+		validateUpload(req.body)
+			.then(submissions.insert)
+			.then(insertSubTitles)
+			.then(insertSubStats)
 			.then(function(){
-				req.session.message = "region successfully uploaded!";
+				req.session.message = "data successfully uploaded!";
 				res.send({redirect: "/dashboard"})
 			})
 			.catch(function(obj){
+				console.log("ERROR MESSAGE: " + obj.message)
 				res.send(obj)
 			})
 	});
@@ -58,6 +60,8 @@ function getRouter(router, database){
 	
 	
 	router.post('/edit', function(req, res, next){
+		res.send("not supported")
+		return;
 		req.body.userid = req.session.userid;
 		req.body.admin =  req.session.admin;
 		validateObj.upload(req.body)
@@ -103,89 +107,81 @@ function getRouter(router, database){
 			})
 	});
 	
-	router.post('/subregions', function(req, res, next){
-		getSubRegions(req.body.subid)
-			.then(function(arr){
-				res.send(arr);
-			})
-			.catch(function(err){
-				res.send(err);
-			})
-	});
+	//getValidator is a function that takes in a filename and returns a function that returns a promise
+	var getValidator = require('../modules/getvalidator');
+	validateUpload = getValidator("dataupload");
 	
-	var validateObj = (function(){
-		var getValidator = require('../modules/getvalidator');
-		var validate = {};
-		validate.upload = getValidator("regionupload");
-		return validate;
-	})();
 	
-	function getSubRegions(subid){
-		return new Promise(function(resolve, reject){
-			database.mysql.query('SELECT name, region_type_id, parent_id FROM sub_regions WHERE sub_id = ?', 
-			[subid], databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: "  + err.message});
-					return;
-				}
-				resolve(result);
-			}
-		});
-	}
 	
-	function insertSubmission(userid, body){
-		return new Promise(function(resolve, reject){
-			database.mysql.query('INSERT INTO submissions (user_id, date_sub, type, status) VALUES (?, now(), "r", "w")', 
-			[userid], databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: "  + err.message});
-					return;
+	var submissions = require('../modules/submissions').getFunctions(database);
+	/*
+	available functions:
+
+	.insert EXPECTS: .userid, .type, ADDS: .subid
+	.changeDate EXPECTS: obj.subid
+	.changeStatus EXPECTS: obj.userid, obj.subid, obj.status
+	.delete EXPECTS: obj.subid
+	*/
+	
+	
+	
+	
+	
+	function insertSubTitles(body){
+		console.log("subtitles")
+		return new Promise(function(resolve, reject){		
+			var sql = "INSERT INTO sub_titles (sub_id, category_id, name) VALUES "
+			for (var i = 0; i < body.titles.length; i++){
+				if (body.titles[i].id > 0){
+					continue;
 				}
-				body.subid = result.insertId;
-				resolve(body);
+				sql += "(" + body.subid + "," + body.cats[i] + "," + database.mysql.escape(body.titles[i].name) + "),"
 			}
-		});
-	}
-	function modifySubmission(body){
-		return new Promise(function(resolve, reject){
-			database.mysql.query('UPDATE submissions SET date_mod = now() WHERE id = ?', [body.subid], databaseHandler);
+			sql = sql.substring(0, sql.length - 1);
+			console.log(sql);
+			database.mysql.query(sql, databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
 					reject({message: "internal database error: "  + err.message});
 					return;
 				}
-				resolve(body);
-			}
-		});
-	}
-	function markSubmission(status, body){
-		return new Promise(function(resolve, reject){
-			database.mysql.query('UPDATE submissions SET status = ?, date_eval = now(), admin_id = ? WHERE id = ?', 
-				[status, body.userid, body.subid], databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: "  + err.message});
-					return;
-				}
-				resolve(body);
-			}
-		});
-	}
-	function deleteSubmission(body){
-		return new Promise(function(resolve, reject){
-			database.mysql.query('DELETE FROM submissions WHERE id = ?', [body.subid], databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: "  + err.message});
-					return;
-				}
+				var insertId = result.insertId;
+				for (var i = body.titles.length - 1; i >= 0; i--){
+					if (body.titles[i].id > 0){
+						continue;
+					}
+					body.titles[i].id = -insertId;
+					insertId--;
+				}		
 				resolve(body);
 			}
 		});
 	}
 	
+	function insertSubStats(body){
+		return new Promise(function(resolve, reject){		
+			var sql = "INSERT INTO sub_stats (sub_id, title_id, source_id, year) VALUES "
+			for (var i = 0; i < body.titles.length; i++){
+				sql += "(" + body.subid + "," + body.titles[i].id + "," + 0 + "," + body.years[i] + "),"
+			}
+			sql = sql.substring(0, sql.length - 1);
+			console.log(sql);
+			database.mysql.query(sql, databaseHandler);
+			function databaseHandler(err, result) {
+				if (err){
+					reject({message: "internal database error: "  + err.message});
+					return;
+				}
+				var body.stats = [];
+				var insertId = result.insertId;
+				for (var i = 0; i < body.titles.length; i++){
+					body.stats.unshift(insertId);
+					insertId--;
+				}
+				resolve(body);
+			}
+		});
+	}	
 	
 	function checkValidAction(body){
 		if (body.submission.type != "r"){
@@ -245,54 +241,7 @@ function getRouter(router, database){
 		});
 	}
 	
-	function insertRegions(body){
-		var sql = 'INSERT INTO regions (sub_id, parent_id, region_type_id, name) VALUES '
-		for (var i = 0; i < body.data.length; i++){
-			sql += "(" + body.subid + "," + body.parent + "," + body.type + "," + database.mysql.escape(body.data[i]) + "),"
-		}
-		sql = sql.substring(0, sql.length - 1);
-		return new Promise(function(resolve, reject){	
-			database.mysql.query(sql, databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: " + err.message});
-					return;
-				}
-				resolve(body);
-			}
-		});
-	}
 	
-	function insertSubRegions(body){
-		var sql = 'INSERT INTO sub_regions (sub_id, parent_id, region_type_id, name) VALUES '
-		for (var i = 0; i < body.data.length; i++){
-			sql += "(" + body.subid + "," + body.parent + "," + body.type + "," + database.mysql.escape(body.data[i]) + "),"
-		}
-		sql = sql.substring(0, sql.length - 1);
-		return new Promise(function(resolve, reject){	
-			database.mysql.query(sql, databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: " + err.message});
-					return;
-				}
-				resolve();
-			}
-		});
-	}
-	
-	function deleteSubRegions(body){
-		return new Promise(function(resolve, reject){	
-			database.mysql.query('DELETE FROM sub_regions WHERE sub_id = ?', [body.subid], databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: " + err.message});
-					return;
-				}
-				resolve(body);
-			}
-		});
-	}
 	
 	return router;
 }

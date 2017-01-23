@@ -6,6 +6,7 @@ app.service("regionService", function($http, event){
 	this.filter = "";
 	this.show = false;
 	this.regions = [];
+	this.groups = [];
 	this.loading = true;
 	
 	this.getCurrentName = function(){
@@ -17,7 +18,7 @@ app.service("regionService", function($http, event){
 	}
 	this.select = function(id){
 		changeRegion(id);
-	}	
+	}
 	this.isEmpty = function(){
 		return list[current.id] && list[current.id].r.length == 0;
 	}
@@ -31,6 +32,13 @@ app.service("regionService", function($http, event){
 	}
 	this.submit = function(){
 		event.broadcast("regionSubmitted", current.id, current.name);
+	}
+	this.submitGroup = function(id){
+		var group = self.groups.find(function(obj){
+			return obj.id == id
+		})
+		self.show = false;
+		event.broadcast("groupSubmitted", group.id, group.type, current.id);
 	}
 	event.handleAsync("getRegion", function(callback, targetid){
 		if (!list[targetid]){
@@ -64,6 +72,7 @@ app.service("regionService", function($http, event){
 			}
 			self.loading = true;
 			self.regions = [];
+			self.groups = [];
 		}
 		else {
 			regionChanged();
@@ -77,6 +86,7 @@ app.service("regionService", function($http, event){
 	function regionChanged(){
 		current.name = list[current.id].name;
 		self.regions = list[current.id].r;
+		self.groups = list[current.id].rg;
 		self.loading = false;
 	}
 	function errorRegionCallback(response)

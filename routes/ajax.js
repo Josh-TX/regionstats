@@ -11,22 +11,14 @@ function getRouter(router, database){
 		}
 	
 		getChildRegions(req.body)
-			.then(getParentRegion)
+			.then(getCurrentRegion)
+			.then(getRegionGroups)
 			.then(function(obj) {
 				res.send(obj);
 			})
 			.catch(function(obj){
 				res.send(obj);
 			})
-		//res.send({message: "valid id"});
-			/*.then(insertSubmission.bind(null, req.session.userid))
-			.then(insertRegions)
-			.then(function(){
-				res.send({redirect: true})
-			})
-			.catch(function(obj){
-				res.send(obj)
-			})*/
 	});
 
 	router.post('/regionType', function(req, res, next) {
@@ -44,7 +36,7 @@ function getRouter(router, database){
 			database.mysql.query('SELECT id,name FROM `region_types`', databaseHandler);
 			function databaseHandler(err, result) {
 				if(err) {
-					reject({message: "internal database error"});
+					reject({message: "internal database error: " + err.message});
 					return;
 				}
 				if(result.length > 0) {
@@ -59,7 +51,7 @@ function getRouter(router, database){
 		})
 	};
 
-	function getParentRegion(body){
+	function getCurrentRegion(body){
 		return new Promise(function(resolve, reject){
 			if (body.id == 0)
 			{
@@ -73,7 +65,7 @@ function getRouter(router, database){
 				[body.id], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err) {
-					reject({message: "internal database error"});
+					reject({message: "internal database error: " + err.message});
 					return;
 				}
 				if (result.length > 0) {
@@ -83,7 +75,7 @@ function getRouter(router, database){
 					return;
 				}
 				else {
-					reject({message: "SQL ERROR!"});
+					reject({message: "Couldn't find region for id = " + body.id});
 					return;
 				}
 			}
@@ -96,7 +88,7 @@ function getRouter(router, database){
 				[body.id], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err) {
-					reject({message: "internal database error"});
+					reject({message: "internal database error: " + err.message});
 					return;
 				}
 				if (result.length > 0) {
@@ -106,6 +98,29 @@ function getRouter(router, database){
 				}
 				else {
 					body.r = [];
+					resolve(body);
+					return;
+				}
+			}
+		})
+	};
+	
+	function getRegionGroups(body){
+		return new Promise(function(resolve, reject){
+			database.mysql.query('SELECT id, region_type_id AS type FROM region_groups WHERE region_id=(?)', 
+				[body.id], databaseHandler);
+			function databaseHandler(err, result) {
+				if (err) {
+					reject({message: "internal database error: " + err.message});
+					return;
+				}
+				if (result.length > 0) {
+					body.rg = result;
+					resolve(body);
+					return;
+				}
+				else {
+					body.rg = [];
 					resolve(body);
 					return;
 				}
