@@ -1,4 +1,5 @@
 function getRouter(router, database){
+	
 	router.all("*", function(req, res, next) {
 		
 		if (req.session.userid > 0){
@@ -20,24 +21,6 @@ function getRouter(router, database){
 			title: "RegionStats"
 		});
 	});
-	
-	router.post('/upload', function(req, res, next) {
-		req.body.userid = req.session.userid;
-		req.body.type = "d";
-		validateUpload(req.body)
-			.then(submissions.insert)
-			.then(insertSubTitles)
-			.then(insertSubStats)
-			.then(function(){
-				req.session.message = "data successfully uploaded!";
-				res.send({redirect: "/dashboard"})
-			})
-			.catch(function(obj){
-				console.log("ERROR MESSAGE: " + obj.message)
-				res.send(obj)
-			})
-	});
-	
 	router.get('/edit/:subid', function(req, res, next) {
 		getSubmissionInfo(req.params)
 			.then(function(body){
@@ -56,6 +39,25 @@ function getRouter(router, database){
 				res.send(err.message);
 			});
 		return;
+	});
+	
+	
+	router.post('/upload', function(req, res, next) {
+		req.body.userid = req.session.userid;
+		req.body.submissionType = "d";
+		validateUpload(req.body)
+			.then(submissions.insert)
+			.then(insertSubTitles)
+			.then(insertSubStats)
+			.then(insertSubData)
+			.then(function(){
+				req.session.message = "data successfully uploaded!";
+				res.send({redirect: "/dashboard"})
+			})
+			.catch(function(obj){
+				console.log("ERROR MESSAGE: " + obj.message)
+				res.send(obj)
+			})
 	});
 	
 	
@@ -109,7 +111,7 @@ function getRouter(router, database){
 	
 	//getValidator is a function that takes in a filename and returns a function that returns a promise
 	var getValidator = require('../modules/getvalidator');
-	validateUpload = getValidator("dataupload");
+	var validateUpload = getValidator("dataupload");
 	
 	
 	
@@ -117,7 +119,7 @@ function getRouter(router, database){
 	/*
 	available functions:
 
-	.insert EXPECTS: .userid, .type, ADDS: .subid
+	.insert EXPECTS: .userid, .submissionType, ADDS: .subid
 	.changeDate EXPECTS: obj.subid
 	.changeStatus EXPECTS: obj.userid, obj.subid, obj.status
 	.delete EXPECTS: obj.subid
@@ -146,12 +148,13 @@ function getRouter(router, database){
 					return;
 				}
 				var insertId = result.insertId;
-				for (var i = body.titles.length - 1; i >= 0; i--){
+				console.log("title id = " + insertId);
+				for (var i = 0; i < body.titles.length; i++){
 					if (body.titles[i].id > 0){
 						continue;
 					}
 					body.titles[i].id = -insertId;
-					insertId--;
+					insertId++;
 				}		
 				resolve(body);
 			}
@@ -159,15 +162,49 @@ function getRouter(router, database){
 	}
 	
 	function insertSubStats(body){
-		return new Promise(function(resolve, reject){		
+		return new Promise(function(resolve, reject){
+			console.log("title array: " + JSON.stringify(body.titles))
 			var sql = "INSERT INTO sub_stats (sub_id, title_id, source_id, year) VALUES "
 			for (var i = 0; i < body.titles.length; i++){
 				sql += "(" + body.subid + "," + body.titles[i].id + "," + 0 + "," + body.years[i] + "),"
 			}
 			sql = sql.substring(0, sql.length - 1);
-			console.log(sql);
+			console.log("sub stats: " + sql);
 			database.mysql.query(sql, databaseHandler);
 			function databaseHandler(err, result) {
+				console.log("sub stats handler")
+				if (err){
+					reject({message: "internal database error: "  + err.message});
+					return;
+				}
+				body.stats = [];
+				var insertId = result.insertId;
+				for (var i = 0; i < body.titles.length; i++){
+					body.stats.unshift(insertId);
+					insertId--;
+				}
+				resolve(body);
+			}
+		});
+	}
+	function insertSubData(body){
+		return new Promise(function(resolve, reject){
+			console.log(body.data.length + " : " + body.stats.length)
+			var sql = "INSERT INTO sub_data (sub_id, sub_stat_id, region_id, val) VALUES "
+			for (var i = 0; i < body.data.length; i++){
+				for (var j = 0; j < body.data[i].values.length; j++){
+					if (typeof body.data[i].values[j] != "number"){
+						console.log("i = " + i + ", j = " + j);
+						continue;
+					}
+					sql += "(" + body.subid + "," + body.stats[j] + "," + body.data[i].id + "," + body.data[i].values[j] + "),";
+				}
+			}
+			sql = sql.substring(0, sql.length - 1);
+			console.log("sub data: " + sql);
+			database.mysql.query(sql, databaseHandler);
+			function databaseHandler(err, result) {
+				console.log("sub data handler")
 				if (err){
 					reject({message: "internal database error: "  + err.message});
 					return;
@@ -182,6 +219,7 @@ function getRouter(router, database){
 			}
 		});
 	}	
+	
 	
 	function checkValidAction(body){
 		if (body.submission.type != "r"){

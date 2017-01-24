@@ -44,7 +44,7 @@ function getRouter(router, database){
 					return;
 				}
 				else {
-					reject({message: "no entries in database!"});
+					reject({message: "database contains no region_types"});
 					return;
 				}
 			}

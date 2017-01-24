@@ -3,7 +3,7 @@ function getFunctions(database){
 	/*
 	available functions:
 
-	.insert EXPECTS: .userid, .type, ADDS: .subid
+	.insert EXPECTS: .userid, .submissionType, ADDS: .subid
 	.changeDate EXPECTS: obj.subid
 	.changeStatus EXPECTS: obj.userid, obj.subid, obj.status
 	.delete EXPECTS: obj.subid
@@ -12,8 +12,8 @@ function getFunctions(database){
 
 	submissions.insert = function(body){
 		return new Promise(function(resolve, reject){
-			database.mysql.query('INSERT INTO submissions (user_id, date_sub, type, status) VALUES (?, now(), "?", "w")', 
-			[body.userid, body.type], databaseHandler);
+			database.mysql.query('INSERT INTO submissions (user_id, date_sub, type, status) VALUES (?, now(), ?, "w")', 
+			[body.userid, body.submissionType], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
 					reject({message: "internal database error: "  + err.message});

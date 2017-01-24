@@ -44,8 +44,10 @@ function getRouter(router, database){
 	
 	
 	router.post('/upload', function(req, res, next) {
+		req.body.userid = req.session.userid;
+		req.body.submissionType = 'r';
 		validateUpload(req.body)
-			.then(insertSubmission.bind(null, req.session.userid))
+			.then(submissions.insert)
 			.then(insertSubRegions)
 			.then(function(){
 				req.session.message = "Region Successfully Uploaded!";
@@ -112,13 +114,23 @@ function getRouter(router, database){
 	});
 	
 	function errorHandler(obj){
-		console.log(obj);
+		console.log("errorHandler: " + obj.message + " : " + JSON.stringify(obj));
 		globalResponse.send(obj);
 	}
 
 	//getValidator is a function that takes in a filename and returns a function that returns a promise
 	var getValidator = require('../modules/getvalidator');
-	validateUpload = getValidator("regionupload");
+	var validateUpload = getValidator("regionupload");
+	
+	var submissions = require('../modules/submissions').getFunctions(database);
+	/*
+	available functions:
+
+	.insert EXPECTS: .userid, .submissionType, ADDS: .subid
+	.changeDate EXPECTS: obj.subid
+	.changeStatus EXPECTS: obj.userid, obj.subid, obj.status
+	.delete EXPECTS: obj.subid
+	*/
 	
 	function getSubRegions(subid){
 		return new Promise(function(resolve, reject){
