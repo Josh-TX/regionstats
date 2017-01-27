@@ -30,7 +30,7 @@ function getRouter(router, database){
 				res.send(obj);
 			})
 	});
-
+	
 	function getRegionTypes() {
 		return new Promise(function(resolve, reject) {
 			database.mysql.query('SELECT id,name FROM `region_types`', databaseHandler);

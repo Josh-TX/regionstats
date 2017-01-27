@@ -42,7 +42,7 @@ app.service("regionService", function($http, event){
 	}
 	event.handleAsync("getRegion", function(callback, targetid){
 		if (!list[targetid]){
-			$http.post('/ajax/region', {id: targetid}).then(function(response){
+			$http.post('/api/region', {id: targetid}).then(function(response){
 				list[targetid] = response.data;
 				callback(response.data);
 			}, errorRegionCallback);
@@ -66,7 +66,7 @@ app.service("regionService", function($http, event){
 		current.id = targetid;
 		self.filter = "";
 		if (!list[targetid]){	
-			$http.post('/ajax/region', {id: current.id}).then(successRegionCallback, errorRegionCallback);
+			$http.post('/api/region', {id: current.id}).then(successRegionCallback, errorRegionCallback);
 			if (list[oldid]){
 				current.name = list[oldid].r.find( function(obj){return obj.id == targetid} ).name;
 			}

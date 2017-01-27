@@ -4,7 +4,7 @@ app.service("typeService", function($http, event) {
 	this.types = [];
 
 	function getTypes() {
-		$http.post('/ajax/regionType').then(successRegionCallback, errorRegionCallback);
+		$http.post('/api/regionType').then(successRegionCallback, errorRegionCallback);
 	}
 
 	this.show = false;

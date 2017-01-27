@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 25, 2017 at 08:43 PM
+-- Generation Time: Jan 25, 2017 at 07:42 PM
 -- Server version: 10.1.16-MariaDB
 -- PHP Version: 5.6.24
 
@@ -23,14 +23,12 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sub_data`
+-- Table structure for table `criteria_items`
 --
 
-CREATE TABLE `sub_data` (
-  `sub_id` int(10) UNSIGNED NOT NULL,
-  `sub_stat_id` int(10) UNSIGNED NOT NULL,
-  `region_id` mediumint(8) UNSIGNED NOT NULL,
-  `val` double NOT NULL
+CREATE TABLE `criteria_items` (
+  `criteria_id` mediumint(8) UNSIGNED NOT NULL,
+  `stat_id` bigint(20) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

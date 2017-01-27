@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 23, 2017 at 06:10 AM
--- Server version: 10.1.9-MariaDB
--- PHP Version: 5.6.15
+-- Generation Time: Jan 25, 2017 at 07:00 PM
+-- Server version: 10.1.16-MariaDB
+-- PHP Version: 5.6.24
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -17,20 +17,21 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `main`
+-- Database: `test`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sub_titles`
+-- Table structure for table `stats`
 --
 
-CREATE TABLE `sub_titles` (
-  `id` int(10) UNSIGNED NOT NULL,
+CREATE TABLE `stats` (
+  `id` bigint(20) UNSIGNED NOT NULL,
   `sub_id` int(10) UNSIGNED NOT NULL,
-  `category_id` tinyint(3) UNSIGNED NOT NULL,
-  `name` varchar(50) NOT NULL
+  `title_id` mediumint(8) UNSIGNED NOT NULL,
+  `source_id` int(10) UNSIGNED NOT NULL,
+  `year` smallint(5) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -38,9 +39,9 @@ CREATE TABLE `sub_titles` (
 --
 
 --
--- Indexes for table `sub_titles`
+-- Indexes for table `stats`
 --
-ALTER TABLE `sub_titles`
+ALTER TABLE `stats`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -48,10 +49,10 @@ ALTER TABLE `sub_titles`
 --
 
 --
--- AUTO_INCREMENT for table `sub_titles`
+-- AUTO_INCREMENT for table `stats`
 --
-ALTER TABLE `sub_titles`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+ALTER TABLE `stats`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

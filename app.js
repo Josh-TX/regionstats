@@ -80,9 +80,6 @@ function getApp(config, database){
 	var loginRouter = require('./routes/login').getRouter(express.Router(), database);
 	app.use(loginRouter);
 	
-	var ajaxRouter = require('./routes/ajax').getRouter(express.Router(), database);
-	app.use("/ajax", ajaxRouter);
-	
 	var regionRouter = require('./routes/region').getRouter(express.Router(), database);
 	app.use("/region", regionRouter);
 
@@ -91,6 +88,10 @@ function getApp(config, database){
 	
 	var dataRouter = require('./routes/data').getRouter(express.Router(), database);
 	app.use("/data", dataRouter);
+	
+	var regionAPI = require('./api/regionAPI').getRouter(express.Router(), database);
+	app.use("/api", regionAPI);
+	
 
 	
 	
