@@ -43,11 +43,11 @@ function getRouter(router, database){
 	
 	
 	router.post('/upload', function(req, res, next) {
+		console.log("post upload")
 		req.body.userid = req.session.userid;
 		req.body.submissionType = "d";
-		validateUpload(req.body)
+		validateUpload(req.body)	
 			.then(submissions.insert)
-			.then(insertSubTitles)
 			.then(insertSubStats)
 			.then(insertSubData)
 			.then(function(){
@@ -55,7 +55,7 @@ function getRouter(router, database){
 				res.send({redirect: "/dashboard"})
 			})
 			.catch(function(obj){
-				console.log("ERROR MESSAGE: " + obj.message)
+				console.log("ERROR MESSAGE: " + obj.message + " : " + JSON.stringify(obj))
 				res.send(obj)
 			})
 	});
@@ -128,45 +128,12 @@ function getRouter(router, database){
 	
 	
 	
-	
-	function insertSubTitles(body){
-		console.log("subtitles")
-		return new Promise(function(resolve, reject){		
-			var sql = "INSERT INTO sub_titles (sub_id, category_id, name) VALUES "
-			for (var i = 0; i < body.titles.length; i++){
-				if (body.titles[i].id > 0){
-					continue;
-				}
-				sql += "(" + body.subid + "," + body.cats[i] + "," + database.mysql.escape(body.titles[i].name) + "),"
-			}
-			sql = sql.substring(0, sql.length - 1);
-			console.log(sql);
-			database.mysql.query(sql, databaseHandler);
-			function databaseHandler(err, result) {
-				if (err){
-					reject({message: "internal database error: "  + err.message});
-					return;
-				}
-				var insertId = result.insertId;
-				console.log("title id = " + insertId);
-				for (var i = 0; i < body.titles.length; i++){
-					if (body.titles[i].id > 0){
-						continue;
-					}
-					body.titles[i].id = -insertId;
-					insertId++;
-				}		
-				resolve(body);
-			}
-		});
-	}
-	
 	function insertSubStats(body){
 		return new Promise(function(resolve, reject){
 			console.log("title array: " + JSON.stringify(body.titles))
-			var sql = "INSERT INTO sub_stats (sub_id, title_id, source_id, year) VALUES "
-			for (var i = 0; i < body.titles.length; i++){
-				sql += "(" + body.subid + "," + body.titles[i].id + "," + 0 + "," + body.years[i] + "),"
+			var sql = "INSERT INTO sub_stats (sub_id, source_id, year, title) VALUES "
+			for (var i = 0; i < body.statCount; i++){
+				sql += "(" + body.subid + "," + 0 + "," + body.years[i] + "," + database.mysql.escape(body.titles[i]) + "),"
 			}
 			sql = sql.substring(0, sql.length - 1);
 			console.log("sub stats: " + sql);
@@ -179,10 +146,12 @@ function getRouter(router, database){
 				}
 				body.stats = [];
 				var insertId = result.insertId;
+				console.log("before substat insertid = " + insertId)
 				for (var i = 0; i < body.titles.length; i++){
 					body.stats.unshift(insertId);
 					insertId--;
 				}
+				console.log("after substat insertid = " + insertId)
 				resolve(body);
 			}
 		});

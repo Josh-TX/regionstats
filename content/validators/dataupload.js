@@ -34,19 +34,20 @@ var dataValidate = (function(){
 			return error;
 		}
 		for (var i = 0; i < count; i++){
-			if (typeof titles[i].id != "number" || titles[i].id <= 0){
-				if (typeof titles[i].name != "string" || titles[i].name.length == 0){
-					error.push({
-						index: i,
-						message: "enter a title"				
-					})
-				}
-				else if (titles[i].name.length < 3){
-					error.push({
-						index: i,
-						message: "title too short"				
-					})
-				}
+			if (/\d+/.test(titles[i])){
+				continue;
+			}
+			if (typeof titles[i] != "string" || titles[i].length == 0){
+				error.push({
+					index: i,
+					message: "enter a title"				
+				})
+			}
+			else if (titles[i].length < 3){
+				error.push({
+					index: i,
+					message: "title too short"				
+				})
 			}
 		}
 		return error;
