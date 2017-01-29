@@ -75,10 +75,19 @@
 		$http.post("/dashboard", {}).then(submissionHandler, errorCallback)
 		$scope.submission = {}
 		$scope.edit = function(item){
-			if (item.type == "r")
+			if (item.type == "r"){
 				window.location.href = "/region/edit/" + item.id;
-			if (item.type == "s")
+			}
+			else if (item.type == "s"){
 				window.location.href = "/source/edit/" + item.id;
+			}
+			else if (item.type == "d"){
+				window.location.href = "/data/edit/" + item.id;
+			}
+			else {
+				alert("unknown submission type")
+			}
+			
 		}
 		
 		function submissionHandler(response){

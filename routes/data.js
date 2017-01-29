@@ -1,7 +1,7 @@
 function getRouter(router, database){
 	
 	router.all("*", function(req, res, next) {
-		
+		next();return;
 		if (req.session.userid > 0){
 			next();
 		}
@@ -26,7 +26,7 @@ function getRouter(router, database){
 			.then(function(body){
 				var permissions = getPermissions(req.session.userid, req.session.admin, body.submission.user_id);
 				if (!permissions.none){
-					res.render('regionedit', {
+					res.render('dataedit', {
 						subid: req.params.subid,
 						permissions: permissions,
 						title: "RegionStats"
@@ -109,6 +109,23 @@ function getRouter(router, database){
 			})
 	});
 	
+	router.post('/subdata', function(req, res, next) {
+		Promise.all([
+			getSubStats(req.body.subid),
+			getSubData(req.body.subid)
+		])
+			.then(function(arr){
+				console.log("sending subdata")
+				res.send({
+					stats: arr[0],
+					data: arr[1]
+				});
+			})
+			.catch(function(err){
+				console.log("error: " + err);
+			})
+	});
+	
 	//getValidator is a function that takes in a filename and returns a function that returns a promise
 	var getValidator = require('../modules/getvalidator');
 	var validateUpload = getValidator("dataupload");
@@ -131,9 +148,9 @@ function getRouter(router, database){
 	function insertSubStats(body){
 		return new Promise(function(resolve, reject){
 			console.log("title array: " + JSON.stringify(body.titles))
-			var sql = "INSERT INTO sub_stats (sub_id, source_id, year, title) VALUES "
+			var sql = "INSERT INTO sub_stats (sub_id, source_id, category_id, year, title, criteria) VALUES "
 			for (var i = 0; i < body.statCount; i++){
-				sql += "(" + body.subid + "," + 0 + "," + body.years[i] + "," + database.mysql.escape(body.titles[i]) + "),"
+				sql += "(" + body.subid + "," + 0 + "," + body.cats[i] + "," + body.years[i] + "," + database.mysql.escape(body.titles[i]) + ",'" + JSON.stringify(body.criteria[i]) + "'),"
 			}
 			sql = sql.substring(0, sql.length - 1);
 			console.log("sub stats: " + sql);
@@ -146,10 +163,10 @@ function getRouter(router, database){
 				}
 				body.stats = [];
 				var insertId = result.insertId;
-				console.log("before substat insertid = " + insertId)
+				console.log("before substat insertid = " + insertId + " : " + result.insertId)
 				for (var i = 0; i < body.titles.length; i++){
-					body.stats.unshift(insertId);
-					insertId--;
+					body.stats.push(insertId);
+					insertId++;
 				}
 				console.log("after substat insertid = " + insertId)
 				resolve(body);
@@ -244,6 +261,33 @@ function getRouter(router, database){
 				}
 				body.submission = result[0];
 				resolve(body);
+			}
+		});
+	}
+	
+	function getSubStats(subid){
+		return new Promise(function(resolve, reject){
+			database.mysql.query('SELECT id, source_id, category_id, year, title FROM sub_stats WHERE sub_id = ?', 
+			[subid], databaseHandler);
+			function databaseHandler(err, result) {
+				if (err){
+					reject({message: "internal database error: "  + err.message});
+					return;
+				}
+				resolve(result);
+			}
+		});
+	}
+	function getSubData(subid){
+		return new Promise(function(resolve, reject){
+			database.mysql.query('SELECT sub_stat_id, region_id, val FROM sub_data WHERE sub_data.sub_id = ?', 
+			[subid], databaseHandler);
+			function databaseHandler(err, result) {
+				if (err){
+					reject({message: "internal database error: "  + err.message});
+					return;
+				}
+				resolve(result);
 			}
 		});
 	}

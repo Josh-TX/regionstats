@@ -15,3 +15,7 @@ String.prototype.contains = function(str){
 	}
 	return true;
 }
+
+String.prototype.equals = function(str){
+	return this.trim().toLowerCase() == str.trim().toLowerCase();
+}

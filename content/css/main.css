@@ -34,7 +34,9 @@
 .top-no-buffer { 
 	margin-top:0; 
 }
-
+.clickable{
+	cursor: pointer;
+}
 body{
 	margin: 0;
 }

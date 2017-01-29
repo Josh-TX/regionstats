@@ -176,8 +176,10 @@ CREATE TABLE `sub_stats` (
   `id` int(10) UNSIGNED NOT NULL,
   `sub_id` int(10) UNSIGNED NOT NULL,
   `source_id` int(10) UNSIGNED NOT NULL,
+  `category_id` tinyint(3) UNSIGNED NOT NULL,
   `year` smallint(5) UNSIGNED NOT NULL,
-  `title` varchar(50) NOT NULL
+  `title` varchar(50) NOT NULL,
+  `criteria` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -247,6 +249,12 @@ ALTER TABLE `stats`
 --
 ALTER TABLE `submissions`
   ADD PRIMARY KEY (`id`);
+  
+--
+-- Indexes for table `sub_stats`
+--
+ALTER TABLE `sub_stats`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `titles`
@@ -295,6 +303,11 @@ ALTER TABLE `stats`
 ALTER TABLE `submissions`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 --
+-- AUTO_INCREMENT for table `sub_stats`
+--
+ALTER TABLE `sub_stats`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `titles`
 --
 ALTER TABLE `titles`
@@ -303,7 +316,7 @@ ALTER TABLE `titles`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

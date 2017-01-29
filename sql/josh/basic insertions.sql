@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 25, 2017 at 08:58 PM
--- Server version: 10.1.16-MariaDB
--- PHP Version: 5.6.24
+-- Generation Time: Jan 29, 2017 at 11:16 AM
+-- Server version: 10.1.9-MariaDB
+-- PHP Version: 5.6.15
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -30,6 +30,13 @@ CREATE TABLE `criteria` (
   `id` mediumint(8) UNSIGNED NOT NULL,
   `name` varchar(40) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `criteria`
+--
+
+INSERT INTO `criteria` (`id`, `name`) VALUES
+(1, 'Male');
 
 -- --------------------------------------------------------
 
@@ -406,8 +413,8 @@ CREATE TABLE `submissions` (
 --
 
 INSERT INTO `submissions` (`id`, `user_id`, `admin_id`, `date_sub`, `date_mod`, `date_eval`, `type`, `status`, `notes`) VALUES
-(1, 9, 9, '2017-01-25 13:56:09', '0000-00-00 00:00:00', '2017-01-25 13:57:23', 'r', 'a', ''),
-(2, 9, 9, '2017-01-25 13:57:53', '0000-00-00 00:00:00', '2017-01-25 13:58:08', 'r', 'a', '');
+(1, 1, 1, '2017-01-29 04:14:41', '0000-00-00 00:00:00', '2017-01-29 04:15:18', 'r', 'a', ''),
+(2, 1, 1, '2017-01-29 04:15:36', '0000-00-00 00:00:00', '2017-01-29 04:15:50', 'r', 'a', '');
 
 -- --------------------------------------------------------
 
@@ -717,8 +724,10 @@ CREATE TABLE `sub_stats` (
   `id` int(10) UNSIGNED NOT NULL,
   `sub_id` int(10) UNSIGNED NOT NULL,
   `source_id` int(10) UNSIGNED NOT NULL,
+  `category_id` tinyint(3) UNSIGNED NOT NULL,
   `year` smallint(5) UNSIGNED NOT NULL,
-  `title` varchar(50) NOT NULL
+  `title` varchar(50) NOT NULL,
+  `criteria` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -734,6 +743,14 @@ CREATE TABLE `titles` (
   `name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `titles`
+--
+
+INSERT INTO `titles` (`id`, `sub_id`, `category_id`, `name`) VALUES
+(1, 0, 1, 'Population'),
+(2, 0, 2, 'Murders');
+
 -- --------------------------------------------------------
 
 --
@@ -741,7 +758,7 @@ CREATE TABLE `titles` (
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL,
   `username` varchar(32) NOT NULL,
   `email` varchar(64) NOT NULL,
   `password` varchar(64) NOT NULL,
@@ -754,7 +771,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `admin`, `date_created`) VALUES
-(9, 'josh', 'a@a.com', 'password', 10, '2017-01-25');
+(1, 'josh', 'a@a.com', 'password', 10, '2017-01-29');
 
 --
 -- Indexes for dumped tables
@@ -797,6 +814,12 @@ ALTER TABLE `submissions`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `sub_stats`
+--
+ALTER TABLE `sub_stats`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `titles`
 --
 ALTER TABLE `titles`
@@ -816,7 +839,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `criteria`
 --
 ALTER TABLE `criteria`
-  MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `regions`
 --
@@ -843,15 +866,20 @@ ALTER TABLE `stats`
 ALTER TABLE `submissions`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
+-- AUTO_INCREMENT for table `sub_stats`
+--
+ALTER TABLE `sub_stats`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `titles`
 --
 ALTER TABLE `titles`
-  MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
