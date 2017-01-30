@@ -28,6 +28,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `criteria` (
   `id` mediumint(8) UNSIGNED NOT NULL,
+  `sub_id` int(10) UNSIGNED NOT NULL,
   `name` varchar(40) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -45,6 +46,7 @@ INSERT INTO `criteria` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `criteria_items` (
+  `sub_id` int(10) UNSIGNED NOT NULL,
   `criteria_id` mediumint(8) UNSIGNED NOT NULL,
   `stat_id` bigint(20) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

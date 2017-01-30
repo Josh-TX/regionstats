@@ -6,9 +6,12 @@ textarea{
 {{/section}}
 	{{>navigation_bar}}
 <div class="container-fluid" ng-controller="uploadRegion">
-	<h1>Upload Data</h1>
+	<h1 ng-if="!subid">Upload Data</h1>
+	<h1 ng-if="subid">Edit Data</h1>
+	subid = {{ng "subid"}}
 	<button class="btn btn-primary btn-lg" ng-click="form.submit()">test submit</button>
-	<div class="row top-buffer form-group" ng-class="{'has-error': form.error.parent}">
+	
+	<div ng-if="!subid" class="row top-buffer form-group" ng-class="{'has-error': form.error.parent}">
 		<div class="col-sm-3">
 			<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Region Group</button>
 		</div>
@@ -26,7 +29,7 @@ textarea{
 			<span class="help-block pull-right" ng-bind="form.error.type"></span>
 		</div>
 	</div>
-	<div class="row top-buffer form-group" ng-class="{'has-error': form.error.data}">
+	<div ng-if="!subid" class="row top-buffer form-group" ng-class="{'has-error': form.error.data}">
 		<div class="col-sm-3">
 			<label class="btn btn-primary btn-block">
 				Select File 
@@ -40,7 +43,7 @@ textarea{
 		
 	</div>
 	{{ng "form.error"}}
-	<div ng-if="csv.data">
+	<div ng-if="csv.data.length > 0">
 		<table class="table table-bordered">
 			<tr>
 				<th>Spreadsheet Title</th>
@@ -134,7 +137,19 @@ textarea{
 				</td>
 			</tr>
 		</table>
-		<button class="btn btn-primary btn-lg" ng-click="form.submit()">Submit</button>
+		<button ng-if="!subid" class="btn btn-primary btn-lg" ng-click="form.submit()">Submit</button>
+		{{#if permissions.save}}
+		<input class="btn btn-primary btn-lg" type="submit" ng-click="form.submit('save')" value="save changes"></input>
+		{{/if}}
+		{{#if permissions.approve}}
+		<input class="btn btn-primary btn-lg" type="submit" ng-click="form.submit('approve')" value="approve submission"></input>
+		{{/if}}
+		{{#if permissions.delete}}
+		<input class="btn btn-primary btn-lg" type="submit" ng-click="form.submit('delete')" value="delete submission"></input>
+		{{/if}}
+		{{#if permissions.reject}}
+		<input class="btn btn-primary btn-lg" type="submit" ng-click="form.submit('reject')" value="reject submission"></input>
+		{{/if}}
 	</div>
 	<!-- modal -->
 	<div modal="regionModal.show" str="'Select Region Group'">
@@ -178,7 +193,7 @@ textarea{
 			alert(JSON.stringify(self.criteria));
 		}
 		
-		this.submit = function(){
+		this.submit = function(action){
 			var filteredData = self.data.filter(function(obj){
 				return !obj.error
 			});
@@ -196,8 +211,6 @@ textarea{
 					return obj.id
 				return obj.name;
 			})
-			console.log("before");
-			console.log(self.criteria);
 			var mappedCriteria = self.criteria.map(function(col){
 				return col.map(function(row){
 					if (row.id > 0)
@@ -205,9 +218,6 @@ textarea{
 					return row.name;
 				})
 			})
-			console.log("after");
-			console.log(self.criteria);
-			console.log(self.criteria[0])
 			var obj = {
 				statCount: self.statCount,
 				cats: mappedCats,
@@ -219,8 +229,15 @@ textarea{
 			obj = test;
 			self.error = dataValidate(obj);
 			if (self.error.none){
+			console.log(action)
 				console.log(JSON.stringify(obj));
-				$http.post('/data/upload', obj).then(successCallback, errorCallback);
+				if (action){
+					obj.action = action;
+					obj.subid = {{subid}};
+					$http.post('/data/edit', obj).then(successCallback, errorCallback);
+				} else {
+					$http.post('/data/upload', obj).then(successCallback, errorCallback);
+				}
 			}
 		}
 		event.listen("setStatCount", function(count){
@@ -268,6 +285,9 @@ textarea{
 		var type;
 		var parent;
 		
+		this.headers = [];
+		this.data = [];
+		
 		this.setFile = function(response){
 			fileData = Papa.parse(response).data;
 			fileData[0].shift();
@@ -302,6 +322,12 @@ textarea{
 			parent = regionid;
 			setData();
 		});
+		
+		event.listen("initialData", function(data){
+			self.data = data;
+			event.broadcast("csvData", self.data);
+		})
+		
 		function setData(){
 			if (typeof fileData != "undefined" && typeof parent != "undefined"){
 				event.requestAsync("getRegion", regionCallback, parent);
@@ -388,6 +414,14 @@ textarea{
 			}
 			event.broadcast("catSelections", self.selections);
 		});
+		event.listen("initialCats", function(cats){
+			for (var i = 0; i < cats.length; i++){
+				self.select(i, {
+					id: cats[i],
+					name: self.cats.find(function(obj){return obj.id == cats[i]}).name
+				})
+			}
+		})
 	})
 	app.service("titleService", function($http, event){
 		var self = this;
@@ -439,18 +473,7 @@ textarea{
 		this.isDisabled = function(index){
 			return !self.catIDs[index] || self.catIDs[index] == 0;
 		}
-		event.listen("setCat", function(index, id){
-			self.selections[index].name = "";
-			self.selections[index].id = 0;
-			self.catIDs[index] = id;
-			if (!titles[id] && !activeRequests[id]){
-				activeRequests[id] = true;
-				$http.post("/api/title", {cat: id}).then(function(response){
-					activeRequests[id] = false;
-					titles[id] = response.data;
-				}, errorCallback);
-			}
-		})
+		event.listen("setCat", setCat)
 		event.listen("setStatCount", function(count){
 			statCount = count;
 			self.selections = [];
@@ -464,12 +487,44 @@ textarea{
 			}
 			event.broadcast("titleSelections", self.selections);
 		});
+		event.listen("initialTitles", function(titles){
+			var mappedTitles = titles.map(function(str){
+				if (/\d+/.test(str)){
+					var id = parseFloat(str);
+					var name = "loading...";
+				} else {
+					var id = 0;
+					var name = str;
+				}
+				return {id: id, name: name}
+			})
+			self.selections = mappedTitles;
+			event.broadcast("titleSelections", self.selections);
+		});
+		function setCat(index, id){
+			self.selections[index].name = "";
+			self.selections[index].id = 0;
+			self.catIDs[index] = id;
+			if (!titles[id] && !activeRequests[id]){
+				activeRequests[id] = true;
+				$http.post("/api/title", {cat: id}).then(databaseHandler.bind(null, id), errorCallback);
+			}
+		}
 		function databaseHandler(id, response){
-			alert(JSON.stringify(id))
-			alert(JSON.stringify(response))
 			activeRequests[id] = false;
 			titles[id] = response.data;
-			alert(JSON.stringify(titles));
+			for (var i = 0; i < statCount; i++){
+				if (self.catIDs[i] == id && self.selections[i].id > 0){
+					var title = titles[id].find(function(obj){
+						return obj.id == self.selections[i].id
+					})
+					if (title){
+						self.selections[i].name = title.name;
+					} else {
+						alert("error finding title " + self.selections[i].id);
+					}
+				}
+			}
 		}
 		function errorCallback(response){
 			alert(JSON.stringify(response.data));
@@ -510,8 +565,13 @@ textarea{
 			}
 			event.broadcast("yearSelections", self.years);
 		});
+		event.listen("initialYears", function(years){
+			for (var i = 0; i < years.length; i++){
+				self.years[i] = years[i];
+			}
+		})
 	})
-	app.service("criteriaService", function($http, event){
+	app.service("criteriaService", function($http, $timeout, event){
 		var self = this;
 		var statCount = 0;
 		var criteria = [];
@@ -578,16 +638,99 @@ textarea{
 			}
 			event.broadcast("criteriaSelections", self.selections);
 		});
-		$http.post("/api/criteria", {}).then(databaseHandler, errorCallback)
+		event.listen("initialCriteria", initialCriteriaFunc);
 		
+		
+		$http.post("/api/criteria", {}).then(databaseHandler, errorCallback)
+		var loading = true;
 		function databaseHandler(response){
+			loading = false;
 			criteria = response.data;
 		}
 		function errorCallback(response){
 			alert(JSON.stringify(response.data));
 		}
+		function initialCriteriaFunc(initialCriteria){
+			if (loading){
+				$timeout(initialCriteriaFunc, 100, initialCriteria);
+				return;
+			}
+			self.selections = initialCriteria.map(function(col){
+				return col.map(function(row){
+					if (/\d+/.test(row)){
+						var id = row;
+						var name = criteria.find(function(obj){return obj.id == row}).name
+					}else {
+						var id = 0;
+						var name = row;
+					}
+					return {id: id, name: name};
+				});
+			})
+			event.broadcast("criteriaSelections", self.selections);
+		}
 	})
-	app.controller("uploadRegion", function($scope, formService, regionService, csvService, catService, titleService, yearService, criteriaService){
+	app.service("editService", function($http, event){
+		var subid = {{subid}}
+		if (subid){
+			$http.post("/data/subdata", {subid: subid}).then(subDataHandler, errorCallback)
+		}
+		function subDataHandler(response){
+			var stats = response.data.stats;
+			stats.sort(function(a, b){
+				return a.id > b.id; 
+			})
+			var cats = [];
+			var titles = [];
+			var years = [];
+			var criteria = [];
+			var dataObjects = [];
+			var statMap = {};
+			var statCount = stats.length;
+			for (var i = 0; i < stats.length; i++){
+				cats.push(stats[i].category_id);
+				titles.push(stats[i].title);
+				years.push(stats[i].year)
+				criteria.push(JSON.parse(stats[i].criteria))
+				statMap[stats[i].id] = i
+			}
+			
+			var regionData = {};
+			var data = response.data.data;
+			for (var i = 0; i < data.length; i++){
+				if (!regionData[data[i].region_id]){
+					regionData[data[i].region_id] = [];
+					for (var j = 0; j < statCount; j++){
+						regionData[data[i].region_id].push("");
+					}
+				}
+				var col = statMap[data[i].sub_stat_id];
+				regionData[data[i].region_id][col] = data[i].val;
+			}
+			var finalData = [];
+			for (var key in regionData) {
+				if(!regionData.hasOwnProperty(key)) 
+					continue;
+				finalData.push({
+					id: key,
+					name: key,
+					values: regionData[key]
+				})
+			}
+			event.broadcast("setStatCount", statCount);
+			event.broadcast("initialCats", cats);
+			event.broadcast("initialTitles", titles)
+			event.broadcast("initialYears", years)
+			event.broadcast("initialCriteria", criteria)
+			event.broadcast("initialData", finalData);
+			
+		}
+		function errorCallback(response){
+			alert(JSON.stringify(response.data));
+		}
+	})
+	
+	app.controller("uploadRegion", function($scope, formService, regionService, csvService, catService, titleService, yearService, criteriaService, editService){
 		$scope.cat = catService;
 		$scope.csv = csvService;
 		$scope.form = formService;
@@ -595,6 +738,8 @@ textarea{
 		$scope.title = titleService;
 		$scope.year = yearService;
 		$scope.criteria = criteriaService;
+		
+		$scope.subid = {{subid}}
 	});
 </script>
 <script src="/content/services/region.js"></script>
