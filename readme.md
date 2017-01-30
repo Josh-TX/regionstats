@@ -1,5 +1,5 @@
-#To-do list:
-============
+# To-do list
+
 upload regions (to SQL)
 verify login/signup works all the time
 edit your own regions
