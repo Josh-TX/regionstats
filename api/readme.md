@@ -1,17 +1,17 @@
 # API Docs
 
 All the API requests must have a POST request type. 
-Most of our APIs expect an JSON paremeter
+All paremeters must be properties of a JSON
 
-## /api/region (region_id)
+### Available APIs
+* [Region](#apiregion)
+* [Region Types](#apiregionType)
 
-#### paremeters:
-**region_id** (*required*)
-The region id of the parent region
-
-#### response:
-an object in the following form: 
-```javascript
+# /api/region
+#### paremeters
+* **region_id** (*required*) The id of the parent region
+#### response
+```
 {
 	parent: (id of parent region)
 	name: (name of parent region)
@@ -31,6 +31,16 @@ an object in the following form:
 	]
 }
 ```
-
-
- 
+# /api/regionType
+#### paremeters
+(*none*)
+#### response
+```
+ [
+	{
+		id: (id of region type)
+		name: (name of region type)
+	},
+	...
+]
+```
