@@ -5,11 +5,12 @@ All paremeters must be properties of a JSON
 
 ### Available APIs
 * [Region](#apiregion)
-* [Region Types](#apiregionType)
+* [Region Types](#apiregiontype)
 
 # /api/region
 #### paremeters
 * **region_id** (*required*) The id of the parent region
+
 #### response
 ```
 {
