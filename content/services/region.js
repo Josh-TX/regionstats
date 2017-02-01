@@ -12,6 +12,9 @@ app.service("regionService", function($http, event){
 	this.getCurrentName = function(){
 		return current.name;
 	}
+	this.getCurrentID = function(){
+		return current.id;
+	}
 	this.back = function() {
 		var id = current.id;;
 		changeRegion(list[id].parent);

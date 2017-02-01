@@ -507,7 +507,7 @@ textarea{
 			self.catIDs[index] = id;
 			if (!titles[id] && !activeRequests[id]){
 				activeRequests[id] = true;
-				$http.post("/api/title", {cat: id}).then(databaseHandler.bind(null, id), errorCallback);
+				$http.post("/api/titles", {category_id: id}).then(databaseHandler.bind(null, id), errorCallback);
 			}
 		}
 		function databaseHandler(id, response){

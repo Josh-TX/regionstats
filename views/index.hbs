@@ -8,37 +8,150 @@
 <p style="padding-left: 10px;">{{makeLink " View users in mysql server" "mysql"}}</p>
 <!--<p style="padding-left: 10px;">{{makeLink " View users in mongodb server" "mongo"}}</p>-->
 
-<div ng-controller="viewRegions">
+<div ng-controller="rootController">
 
 	<button class="btn btn-primary" ng-click="show=!show"> show Sidebar</button>
-	<div sidebar="show">
-		<sidebar-header>
-			<div class="row">
-				<div class="col-xs-6">
-					<button class="btn btn-default" ng-click="regionSidebar.back()">back</button>
+	<div ng-controller="sidebarController">
+		<div sidebar="show">
+			<sidebar-header>
+				<div class="row">
+					<div class="col-xs-6">
+						<button class="btn btn-default" ng-click="back()" ng-if="state != 'root'">back</button>
+					</div>
+					<div class="col-xs-6">
+						<input type="text" class="form-control" placeholder="filter" ng-model="filter" ng-change="filterChanged()"></input>
+					</div>				
 				</div>
-				<div class="col-xs-6">
-					<input type="text" class="form-control" placeholder="filter" ng-model="regionSidebar.filter" ng-change="regionSidebar.filterChanged()"></input>
-				</div>				
-			</div>
-			<div class="row">
-				<div class="col-md-12">
-					<h2 ng-bind="regionSidebar.getCurrentName()"></h2>
+				<div class="row">
+					<div class="col-md-12">
+						<h2 ng-bind="title"></h2>
+					</div>
 				</div>
-			</div>
-		</sidebar-header>
-		<sidebar-body>
-			<button class="btn btn-default" ng-repeat="item in regionSidebar.regions" ng-click="regionSidebar.select(item.id)">{{ng "item.name"}}</button>
-			<p ng-if="regionSidebar.isEmpty()">No sub-regions found</p>
-			<p ng-if="regionSidebar.loading">Loading...</p>
-		</sidebar-body>
-	</div>	
+			</sidebar-header>
+			<sidebar-body>
+				<div ng-switch="state">
+					<div ng-switch-when="root">
+						<button class="btn btn-default" ng-click="changeState('region')">Browse by Regions</button>
+						<button class="btn btn-default" ng-click="changeState('cat')">Browse by Stats</button>
+					</div>
+					
+					<div ng-switch-when="region">
+						<button class="btn btn-primary" ng-repeat="item in regionSidebar.groups" ng-click="changeState('regionTitle')">View stats for {{ng "regionSidebar.getCurrentName()"}}</button>
+						<button class="btn btn-primary" ng-repeat="item in regionSidebar.groups" ng-click="changeState('groupTitle', cat)">{{ng "item.type"}}s in {{ng "regionSidebar.getCurrentName()"}}</button>
+						<button class="btn btn-default" ng-repeat="item in regionSidebar.regions" ng-click="regionSidebar.select(item.id)">{{ng "item.name"}}</button>
+						<p ng-if="regionSidebar.isEmpty()">No sub-regions found</p>
+						<p ng-if="regionSidebar.loading">Loading...</p>
+					</div>
+					
+					<div ng-switch-when="cat">
+						<button ng-repeat="cat in catService.cats" class="btn btn-default" ng-click="changeState('catTitle', cat)">{{ng 'cat.name'}}</button>
+					</div>
+					<div ng-switch-when="catTitle">
+						<button ng-repeat="title in catTitle.titles" class="btn btn-default" ng-click="">{{ng 'title.name'}}</button>
+						<p ng-if="catTitle.empty()">No stats found</p>
+						<p ng-if="catTitle.loading">Loading...</p>
+					</div>
+				</div>
+			</sidebar-body>
+		</div>
+	</div>
 </div>
 {{#section 'scripts'}}
 
 <script>
-app.controller("viewRegions", function($scope, regionService) {
+app.service("catService", function(){
+	this.cats = [
+		{id: 1, name: "Census"},
+		{id: 2, name: "Crime"},
+		{id: 3, name: "Economics"},
+		{id: 4, name: "Education"},
+		{id: 5, name: "Voting"}
+	];
+})
+app.service("catTitle", function($http){
+	var self = this;
+	var allTitles = {};
+	
+	this.loading = false;
+	this.titles = [];
+	this.setCat = function(catid){
+		if (!allTitles[catid]){
+			self.loading = true;
+			self.titles = [];
+			$http.post("/api/titles", {category_id: catid}).then(function(response){
+				allTitles[catid] = response.data;
+				self.titles = response.data
+				self.loading = false;
+			})
+		} else {
+			self.titles = allTitles[catid]
+		}
+	}
+	this.empty = function(){
+		return !self.loading && self.titles.length == 0;
+	}
+})
+
+app.service("regionTitle", function($http){
+	var self = this;
+	var allTitles = {};
+	
+	this.loading = false;
+	this.titles = [];
+	this.setRegion = function(region_id){
+		if (!allTitles[region_id]){
+			self.loading = true;
+			self.titles = [];
+			$http.post("/api/titles", {region_id: region_id}).then(function(response){
+				allTitles[region_id] = response.data;
+				self.titles = response.data
+				self.loading = false;
+			})
+		} else {
+			self.titles = allTitles[region_id]
+		}
+	}
+	this.empty = function(){
+		return !self.loading && self.titles.length == 0;
+	}
+})
+
+app.controller("rootController", function($scope, regionService) {
+})
+
+app.controller("sidebarController", function($http, $scope, regionService, catService, catTitle, regionTitle) {
+	$scope.catService = catService
+	$scope.state = "root";
 	$scope.regionSidebar = regionService;
+	$scope.catTitle = catTitle;
+	$scope.regionTitle = regionTitle;
+	
+	$scope.changeState = function(newState, data){
+		$scope.state = newState;
+		if (newState == "catTitle"){
+			$scope.catTitle.setCat(data.id);
+		}
+		if (newState == "regionTitle"){
+			$scope.regionTitle.setRegion($scope.regionSidebar.getCurrentID());
+		}
+	}
+	$scope.back = function(){
+		switch($scope.state){
+			case "region":
+				if ($scope.regionSidebar.isNotWorld()){
+					$scope.regionSidebar.back();
+				} else {
+					$scope.state = "root";
+				}
+				break;
+			case "cat":
+				$scope.state = "root";
+				break;
+			case "catTitle":
+				$scope.state = "cat";
+			
+		}
+	}
 })
 
 </script>
