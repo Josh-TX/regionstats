@@ -31,16 +31,14 @@
 			<sidebar-body>
 				<div ng-switch="state">
 					<div ng-switch-when="root">
-						<button class="btn btn-default" ng-click="changeState('region')">Browse by Regions</button>
-						<button class="btn btn-default" ng-click="changeState('cat')">Browse by Stats</button>
+						<div sidebar-section="'Browse by...'" list="rootList", callback="changeState(obj.newState)"></div>
 					</div>
 					
 					<div ng-switch-when="region">
-						<button class="btn btn-primary" ng-repeat="item in regionSidebar.groups" ng-click="changeState('regionTitle')">View stats for {{ng "regionSidebar.getCurrentName()"}}</button>
-						<button class="btn btn-primary" ng-repeat="item in regionSidebar.groups" ng-click="changeState('groupTitle', cat)">{{ng "item.type"}}s in {{ng "regionSidebar.getCurrentName()"}}</button>
-						<button class="btn btn-default" ng-repeat="item in regionSidebar.regions" ng-click="regionSidebar.select(item.id)">{{ng "item.name"}}</button>
-						<p ng-if="regionSidebar.isEmpty()">No sub-regions found</p>
-						<p ng-if="regionSidebar.loading">Loading...</p>
+						<div sidebar-section="'Region Groups'" list="regionService.groups", callback="changeState('regionTitle')"></div>
+						<!-- child regions -->
+						<div sidebar-section="regionService.getCurrentName()" list="regionService.regions", 
+						callback="regionService.select(obj.id)" empty="'No sub-regions'" loading="regionService.loading"></div>
 					</div>
 					
 					<div ng-switch-when="cat">
@@ -122,9 +120,22 @@ app.controller("rootController", function($scope, regionService) {
 app.controller("sidebarController", function($http, $scope, regionService, catService, catTitle, regionTitle) {
 	$scope.catService = catService
 	$scope.state = "root";
-	$scope.regionSidebar = regionService;
+	$scope.regionService = regionService;
 	$scope.catTitle = catTitle;
 	$scope.regionTitle = regionTitle;
+	$scope.test = function(obj){
+		alert(JSON.stringify(obj))
+	}
+	$scope.rootList = [
+		{
+			newState: "region",
+			name: "Browse by Region"
+		},
+		{
+			newState: "cat",
+			name: "Browse by Statistic"
+		}
+	]
 	
 	$scope.changeState = function(newState, data){
 		$scope.state = newState;
@@ -132,14 +143,14 @@ app.controller("sidebarController", function($http, $scope, regionService, catSe
 			$scope.catTitle.setCat(data.id);
 		}
 		if (newState == "regionTitle"){
-			$scope.regionTitle.setRegion($scope.regionSidebar.getCurrentID());
+			$scope.regionTitle.setRegion($scope.regionService.getCurrentID());
 		}
 	}
 	$scope.back = function(){
 		switch($scope.state){
 			case "region":
-				if ($scope.regionSidebar.isNotWorld()){
-					$scope.regionSidebar.back();
+				if ($scope.regionService.isNotWorld()){
+					$scope.regionService.back();
 				} else {
 					$scope.state = "root";
 				}
@@ -157,4 +168,5 @@ app.controller("sidebarController", function($http, $scope, regionService, catSe
 </script>
 <script src="/content/services/region.js"></script>
 <script src="/content/directives/sidebar.js"></script>
+<script src="/content/directives/sidebarsection.js"></script>
 {{/section}}
