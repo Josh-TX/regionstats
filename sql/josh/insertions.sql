@@ -269,8 +269,6 @@ INSERT INTO `submissions` (`id`, `user_id`, `admin_id`, `date_sub`, `date_mod`, 
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `admin`, `date_created`) VALUES
 (1, 'josh', 'a@a.com', 'password', 10, '2017-01-29');
 
-ALTER TABLE `criteria`
-  MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `regions`
 --
