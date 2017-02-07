@@ -2,6 +2,7 @@ app.service("typeService", function($http, event) {
 	var self = this;
 
 	this.types = [];
+	this.title = "Select Region Type";
 
 	function getTypes() {
 		$http.post('/api/regionType').then(successRegionCallback, errorRegionCallback);

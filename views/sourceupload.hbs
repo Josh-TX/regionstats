@@ -1,28 +1,28 @@
 {{#section 'styles'}}
 {{/section}}
 	{{>navigation_bar}}
-	<div class="container" ng-controller="uploadSource" ng-submit="submitForm()">
+	<div class="container" ng-controller="uploadSource" ng-submit="form.submit()">
 		<h1>Upload Source</h1>
 		<form enctype="multipart/form-data" accept-charset="UTF-8">
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.parent}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.parent}">
 				<div class="col-sm-3">
 					<button type="button" class="btn btn-primary btn-block" ng-click="regionModal.show=true">Select Region</button>
 				</div>
 				<div class="col-sm-9">
-					<input type="text" class="form-control" ng-model="regionModal.name" disabled></input>
-					<span class="help-block pull-right" ng-bind="error.parent"></span>
+					<input type="text" class="form-control" ng-model="form.regionName" disabled></input>
+					<span class="help-block pull-right" ng-bind="form.error.parent"></span>
 				</div>
 			</div>
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.type}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.type}">
 				<div class="col-sm-3">
 					<button type="button" class="btn btn-primary btn-block" ng-click="publisherModal.show=true">Select Publisher</button>
 				</div>
 				<div class="col-sm-9">
-					<input type="text" class="form-control" ng-model="publisherModal.name" disabled></input>
-					<span class="help-block pull-right" ng-bind="error.type"></span>
+					<input type="text" class="form-control" ng-model="form.publisherName" disabled></input>
+					<span class="help-block pull-right" ng-bind="form.error.type"></span>
 				</div>
 			</div>
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.title}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.title}">
 				<div class="col-sm-3">
 					<label class="btn btn-primary btn-block">
 						Title:
@@ -31,10 +31,10 @@
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="form.title"></input>
-					<span class="help-block pull-right" ng-bind="error.title"></span>
+					<span class="help-block pull-right" ng-bind="form.error.title"></span>
 				</div>
 			</div>
-			<div class="row top-buffer form-group" ng-class="{'has-error': error.url}">
+			<div class="row top-buffer form-group" ng-class="{'has-error': form.error.url}">
 				<div class="col-sm-3">
 					<label class="btn btn-primary btn-block">
 						URL: 
@@ -43,7 +43,7 @@
 				</div>
 				<div class="col-sm-9">
 					<input type="text" class="form-control" ng-model="form.url"></input>
-					<span class="help-block pull-right" ng-bind="error.url"></span>
+					<span class="help-block pull-right" ng-bind="form.error.url"></span>
 				</div>	
 			</div>
 			<input class="btn btn-primary btn-lg pull-right" type="submit" value="submit"></input>
@@ -60,83 +60,70 @@
 			</table>
 		</div>
 		<!-- modal -->
-		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.submitRegion()">
-			<h2 class="top-no-buffer"><small ng-bind="regionModal.currentRegion.name"></small></h2>
-			<!--<input type="text" class="form-control" placeholder="filter"></input>-->
-			<button ng-click="regionModal.back()" ng-if="regionModal.list[regionModal.currentRegion.id].parent != -1">back</button>
+		<div modal="regionModal.show" str="'Select Parent Region'" callback="regionModal.submit()">
+			<div class="row">
+				<div class="col-xs-6">
+					<button class="btn btn-default pull-left right-buffer" ng-click="regionModal.back()" ng-if="regionModal.isNotWorld()">back</button>
+					<h2 class="top-no-buffer"><small ng-bind="regionModal.getCurrentName()"></small></h2>
+				</div>
+				<div class="col-xs-6">
+					<input type="text" class="form-control" placeholder="filter" ng-model="regionModal.filter" ng-change="regionModal.filterChanged()"></input>
+				</div>
+			</div>
 			<hr>
-			<button class="btn btn-default" ng-repeat="data in regionModal.list[regionModal.currentRegion.id].r" ng-click="regionModal.select(data.id)">{{ng "data.name"}}</button>
-			<p ng-if="regionModal.list[regionModal.currentRegion.id].r.length == 0">No sub-regions found</p>
+			<button class="btn btn-default" ng-repeat="item in regionModal.regions" ng-click="regionModal.select(item.id)">{{ng "item.name"}}</button>
+			<p ng-if="regionModal.isEmpty()">No sub-regions found</p>
+			<p ng-if="regionModal.loading">Loading...</p>
 		</div>
 
 		<div modal="publisherModal.show" str="publisherModal.title">
-			<button class="btn btn-default" ng-repeat="(id, name) in publisherModal.types" ng-click="publisherModal.select(id)">{{ng "name"}}</button>
+			<input type="text" class="form-control" ng-model="publisherModal.newPublisher"></input>
+			<button type="button" class="btn btn-primary btn-block" ng-click="publisherModal.addPublisher()">Add New Publisher</button>
+			<hr>
+			<button class="btn btn-default" ng-repeat="data in publisherModal.types" ng-click="publisherModal.select(data.id)">{{ng "data.name"}}</button>
 		</div>
 	</div><!-- end container -->
 	
 {{#section 'scripts'}}
 
 <script type="application/javascript">
-    var app = angular.module("myApp", []);
+    //var app = angular.module("myApp", []);
 
-    /*app.service("formService", function($http){
+    app.service("formService", function($http, event){
 		var self = this;
 		this.data = [];
+		this.regionName = "not selected";
+		this.publisherName = "not selected";
 		
 		this.submit = function(){
-			self.data.map(titleCase);
-			self.error = uploadSourceValidate(self);
-			if (self.error.none)			
+			//console.log("Submitting form!");
+			var obj = {
+				region: self.region,
+				publisher: self.publisher,
+				title: self.title,
+				url: self.url
+			}
+			//self.data.map(titleCase);
+			self.error = uploadSourceValidate(obj);
+			if (self.error.none) {
+				//console.log("Posting submission!");			
 				$http.post('/source/upload', this).then(successCallback, errorCallback);
-		}
-		function successCallback(response){
-			if (response.data.redirect){
-				window.location.href = response.data.redirect;
 			}
-			else if (response.data.message){
-				alert(response.data.message)
-			}
-			else {
-				alert("unknown response");
-			}
+			else
+				console.log(self.error);
 		}
-		
-		function errorCallback(response){
-			alert("an error occured: " + JSON.stringify(response.data))
-		}
-	});*/
 
-    app.service("publisherService", function($http))
+		event.listen("regionSubmitted", function(id, name){
+			self.region = id;
+			self.regionName = name;
+		})
+		event.listen("publisherSubmitted", function(id, name){
+			self.publisher = id;
+			self.publisherName = name;
+			//console.log("Name: " + self.publisherName);
+			//console.log("ID: " + self.publisher)
+		})
 
-	app.controller("uploadSource", function($http, $scope){
-		$scope.publisherModal = {}
-		$scope.publisherModal.types = {
-			"1": "CollegeBoard",
-			"2": "New York Times",
-			"3": "United States Census Bureau"
-		}
-		$scope.publisherModal.show = false;
-		$scope.publisherModal.title = "Select Region Type";
-		$scope.publisherModal.name = "not selected";
-		$scope.publisherModal.select = function(id){
-			$scope.publisherModal.name = this.types[id];
-			$scope.form.type = id;
-			$scope.publisherModal.show = false;
-		}
-		
-		$scope.form = formService;
-		$scope.fileName = "not selected";
-		$scope.form.data = [];
-
-		$scope.regionModal = getRegionModal($scope.form, $http);
-
-		$scope.submitForm = function(){
-			$scope.form.data.map(titleCase);
-			$scope.error = uploadSourceValidate($scope.form);
-			if ($scope.error.none)
-				$http.post('/source/upload', $scope.form).then(successCallback, errorCallback);
-		}
-		
 		function successCallback(response){
 			if (response.data.redirect){
 				window.location.href = response.data.redirect;
@@ -153,7 +140,16 @@
 			alert("an error occured: " + JSON.stringify(response.data))
 		}
 	});
+
+	app.controller("uploadSource", function($scope, formService, regionService, publisherService){
+		$scope.form = formService;
+		$scope.regionModal = regionService;
+		$scope.publisherModal = publisherService;
+	});
 </script>
+<script src="/content/services/region.js"></script>
+<script src="/content/services/publisher.js"></script>
+
 <script src="/content/directives/filereader.js"></script>
 <script src="/content/directives/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>

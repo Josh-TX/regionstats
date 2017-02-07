@@ -29,7 +29,7 @@ function getMysql(config){
 	//I explicitly create a connection just to test if I can connect to the server. 
 	pool.getConnection(function(err, connection) {
 		if (err){
-			console.log("Could not connect to mysql server");
+			console.log("Could not connect to mysql server!");
 			throw err;
 		}
 		connection.release();

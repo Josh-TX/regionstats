@@ -1,7 +1,7 @@
 # API Docs
 
 All the API requests must have a POST request type. 
-All paremeters must be properties of a JSON
+All parameters must be properties of a JSON
 
 ### Available APIs
 * [Region](#apiregion)

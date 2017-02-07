@@ -4,7 +4,7 @@
 	<div class="container" ng-controller="editSource">
 		<h1>Source Submission</h1>
 		<hr>
-		<form enctype="multipart/form-data" accept-charset="UTF-8" ng-submit="submitForm()">
+		<form enctype="multipart/form-data" accept-charset="UTF-8" ng-submit="form.submitForm()">
 			
 			<h2>Region</h2>
 			<div class="row">
@@ -20,16 +20,16 @@
 			</div>	
 			
 			<div class="row top-buffer"
-				ng-class="{'has-success':(form.parent != originals[0].parent_id)}">
+				ng-class="{'has-success':(form.region != form.originals[0].region_id)}">
 				<div class="col-sm-4">
-					<label class="help-block" ng-bind="originals[0].parent_id"></label>
+					<label class="help-block" ng-bind="form.originals[0].region_id"></label>
 				</div>
 				<div class="col-sm-4">
-					<input type="text" class="form-control" ng-model="form.parent" disabled></input>
+					<input type="text" class="form-control" ng-model="form.region" disabled></input>
 				</div>
 				<div class="col-sm-4 btn-group">
 				<button type="button" class="btn btn-default" ng-click="regionModal.show=true">Change Region</button>
-					<button type="button" class="btn btn-default" ng-click="form.parent = originals[0].parent_id">Reset</button>
+					<button type="button" class="btn btn-default" ng-click="form.region = form.originals[0].region_id">Reset</button>
 				</div>
 			</div>
 			
@@ -47,16 +47,16 @@
 			</div>	
 			
 			<div class="row top-buffer"
-				ng-class="{'has-success':(form.type != originals[0].region_type_id)}">
+				ng-class="{'has-success':(form.publisher != form.originals[0].publisher)}">
 				<div class="col-sm-4">
-					<label class="help-block" ng-bind="typeModal.types[originals[0].region_type_id]"></label>
+					<label class="help-block" ng-bind="form.originals[0].publisher"></label>
 				</div>
 				<div class="col-sm-4">
-					<input type="text" class="form-control" ng-model="typeModal.types[form.type]" disabled></input>
+					<input type="text" class="form-control" ng-model="form.publisher" disabled></input>
 				</div>
 				<div class="col-sm-4 btn-group">
-				<button type="button" class="btn btn-default" ng-click="typeModal.show=true">Change Publisher</button>
-					<button type="button" class="btn btn-default" ng-click="form.type = originals[0].region_type_id">Reset</button>
+				<button type="button" class="btn btn-default" ng-click="publisherModal.show=true">Change Publisher</button>
+					<button type="button" class="btn btn-default" ng-click="form.publisher = form.originals[0].publisher">Reset</button>
 				</div>
 			</div>		
 
@@ -74,19 +74,45 @@
 			</div>	
 			
 			<div class="row top-buffer"
-				ng-class="{'has-success':(form.type != originals[0].region_type_id)}">
+				ng-class="{'has-success':(form.title != form.originals[0].title)}">
 				<div class="col-sm-4">
-					<label class="help-block" ng-bind="typeModal.types[originals[0].region_type_id]"></label>
+					<label class="help-block" ng-bind="form.originals[0].title"></label>
 				</div>
 				<div class="col-sm-4">
-					<input type="text" class="form-control" ng-model="typeModal.types[form.type]" disabled></input>
+					<input type="text" class="form-control" ng-model="form.title"></input>
 				</div>
 				<div class="col-sm-4 btn-group">
-				<button type="button" class="btn btn-default" ng-click="typeModal.show=true">Change Publisher</button>
-					<button type="button" class="btn btn-default" ng-click="form.type = originals[0].region_type_id">Reset</button>
+					<button type="button" class="btn btn-default" ng-click="form.title = form.originals[0].title">Reset</button>
 				</div>
 			</div>
+
 			<h2>URL</h2>
+			<div class="row">
+				<div class="col-sm-4">
+					<h4>Original Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>New Value</h4>
+				</div>
+				<div class="col-sm-4">
+					<h4>Actions</h4>
+				</div>
+			</div>	
+			
+			<div class="row top-buffer"
+				ng-class="{'has-success':(form.url != form.originals[0].url)}">
+				<div class="col-sm-4">
+					<label class="help-block" ng-bind="form.originals[0].url"></label>
+				</div>
+				<div class="col-sm-4">
+					<input type="text" class="form-control" ng-model="form.url"></input>
+				</div>
+				<div class="col-sm-4 btn-group">
+					<button type="button" class="btn btn-default" ng-click="form.url = form.originals[0].url">Reset</button>
+				</div>
+			</div>
+
+			<hr>
 			
 			{{#if permissions.save}}
 			<input class="btn btn-primary btn-lg" type="submit" ng-click="form.action='save'" value="save changes"></input>
@@ -103,80 +129,84 @@
 		</form>
 		
 		<!-- modal -->
-		<div modal="regionModal.show" str="regionModal.title" callback="regionModal.select()">
-			<h2 class="top-no-buffer"><small ng-bind="regionModal.stack[regionModal.stack.length - 1].name"></small></h2>
-			<input type="text" class="form-control" placeholder="filter"></input>
+		<div modal="regionModal.show" str="'Select Parent Region'" callback="regionModal.submit()">
+			<div class="row">
+				<div class="col-xs-6">
+					<button class="btn btn-default pull-left right-buffer" ng-click="regionModal.back()" ng-if="regionModal.isNotWorld()">back</button>
+					<h2 class="top-no-buffer"><small ng-bind="regionModal.getCurrentName()"></small></h2>
+				</div>
+				<div class="col-xs-6">
+					<input type="text" class="form-control" placeholder="filter" ng-model="regionModal.filter" ng-change="regionModal.filterChanged()"></input>
+				</div>
+			</div>
 			<hr>
-			
+			<button class="btn btn-default" ng-repeat="item in regionModal.regions" ng-click="regionModal.select(item.id)">{{ng "item.name"}}</button>
+			<p ng-if="regionModal.isEmpty()">No sub-regions found</p>
+			<p ng-if="regionModal.loading">Loading...</p>
 		</div>
-		<div modal="typeModal.show" str="typeModal.title">
-			<button class="btn btn-default" ng-repeat="(id, name) in typeModal.types" ng-click="typeModal.select(id)">{{ng "name"}}</button>
+		<div modal="publisherModal.show" str="publisherModal.title">
+			<input type="text" class="form-control" ng-model="publisherModal.newPublisher"></input>
+			<button type="button" class="btn btn-primary btn-block" ng-click="publisherModal.addPublisher()">Add New Publisher</button>
+			<hr>
+			<button class="btn btn-default" ng-repeat="data in publisherModal.types" ng-click="publisherModal.select(data.id)">{{ng "data.name"}}</button>
 		</div>
 	</div><!-- end container -->
 	
 {{#section 'scripts'}}
 
 <script type="application/javascript">
-    var app = angular.module("myApp", []);
+    //var app = angular.module("myApp", []);
 
-	app.controller("editSource", function($http, $scope, $timeout){
-		$scope.form = {};
-		$scope.form.subid = {{subid}};
-		$http.post("/source/subsources", {subid: $scope.form.subid}).then(sourceListHandler, errorCallback)
-		/*$scope.regionModal = {}
-		$scope.regionModal.stack = [{id: 0, name: "World"}];
-		$scope.regionModal.show = false;
-		$scope.regionModal.title = "Select Parent Region";
+    app.service("formService", function($http, $timeout, event) {
+    	var self = this;
+    	this.originals = {};
+
+    	this.subid = {{subid}};
+    	$http.post("/source/subsources", {subid: this.subid}).then(sourceListHandler, errorCallback);
+
+    	/*this.regionName = "loading...";
+		this.publisherName = "loading...";
 		
-		$scope.regionModal.name = "not selected";
-		$scope.regionModal.select = function(){
-			var region = $scope.regionModal.stack[$scope.regionModal.stack.length - 1];
-			$scope.regionModal.name = region.name;
-			$scope.form.parent = region.id;
-		}*/
-		/*$scope.typeModal = {}
-		$scope.typeModal.types = {
-			"1": "Country",
-			"2": "City",
-			"3": "State"
-		}
-		$scope.typeModal.show = false;
-		$scope.typeModal.title = "Select Region Type";
-		$scope.typeModal.name = "not selected";
-		$scope.typeModal.select = function(id){
-			$scope.typeModal.name = this.types[id];
-			$scope.form.type = id;
-			$scope.typeModal.show = false;
-		}
-		$scope.form.data = [];*/
+		this.originalRegionName = "loading...";
+		this.originalPublisherName = "loading...";*/
 
-		$scope.publisherModal = {}
-		$scope.publisherModal.types = {
-			"1": "CollegeBoard",
-			"2": "New York Times",
-			"3": "United States Census Bureau"
+    	function sourceListHandler(response){
+			$timeout(function(){
+				//console.log(response.data);
+				self.originals = response.data;
+				//console.log(self.originals);
+				self.region = self.originals[0].region_id;
+				self.publisher = self.originals[0].publisher;
+				self.title = self.originals[0].title;
+				self.url = self.originals[0].url;
+			})
 		}
-		$scope.publisherModal.show = false;
-		$scope.publisherModal.title = "Select Region Type";
-		$scope.publisherModal.name = "not selected";
-		$scope.publisherModal.select = function(id){
-			$scope.publisherModal.name = this.types[id];
-			$scope.form.type = id;
-			$scope.publisherModal.show = false;
-		}
-		
-		$scope.form = {};
-		$scope.fileName = "not selected";
-		$scope.form.data = [];
 
-		$scope.regionModal = getRegionModal($scope.form, $http);
+		event.listen("regionSubmitted", function(id, name){
+			//console.log("Region: " + id + " " + "name");
+			self.region = id;
+			self.regionName = name;
+		})
+		event.listen("publisherSubmitted", function(id, name){
+			self.publisher = id;
+			self.publisherName = name;
+		})
 
-		$scope.submitForm = function(){
-			$scope.error = uploadSourceValidate($scope.form);
-			if ($scope.error.none)
-				$http.post('/source/edit', $scope.form).then(successCallback, errorCallback);
+    	self.submitForm = function(){
+    		//console.log("Submitting form");
+    		var obj = {
+    			action: self.action,
+    			subid: self.subid,
+    			region: self.region,
+    			publisher: self.publisher,
+    			title: self.title,
+    			url: self.url
+    		}
+			self.error = uploadSourceValidate(obj);
+			if (self.error.none)
+				$http.post('/source/edit', obj).then(successCallback, errorCallback);
 		}
-		
+
 		function successCallback(response){
 			if (response.data.redirect){
 				window.location.href = response.data.redirect;
@@ -185,26 +215,34 @@
 				alert(response.data.message)
 			}
 			else {
-				alert("unknown response");
+				//alert("unknown response");
+				console.log(response);
 			}
 		}
 		
 		function errorCallback(response){
 			alert("an error occured: " + JSON.stringify(response.data))
 		}
-		function sourceListHandler(response){
-			$timeout(function(){
-				console.log(response.data);
-				$scope.originals = response.data;
-				$scope.form.parent = $scope.originals[0].parent_id;
-				$scope.form.type = $scope.originals[0].region_type_id;
-				for (var i = 0; i < $scope.originals.length; i++){
-					$scope.form.data.push($scope.originals[i].name);
-				}
-			})
+
+		/*function regionNameHandler(region){
+			self.parentName = region.name;
+			self.originalParentName = region.name;
 		}
+		function typeNameHandler(str){
+			self.typeName = str;
+			self.originalTypeName = str;
+		}*/
+    });
+
+	app.controller("editSource", function($scope, formService, regionService, publisherService){
+		$scope.form = formService;
+		$scope.regionModal = regionService;
+		$scope.publisherModal = publisherService;
 	});
 </script>
+<script src="/content/services/region.js"></script>
+<script src="/content/services/publisher.js"></script>
+
 <script src="/content/directives/modal.js"></script>
 <script src="/content/js/titlecase.js"></script>
 <script src="/content/validators/sourceupload.js"></script>

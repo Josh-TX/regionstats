@@ -60,16 +60,17 @@ function getRouter(router, database){
 			.then(checkValidAction)
 			.then(function(body){
 				if (body.action == 'save'){
-					deleteSubRegions(body)
+					console.log("trying to save...");
+					deleteSubSources(body)
 						.then(modifySubmission)
-						.then(insertSubRegions)
+						.then(insertSubSources)
 						.then(function(){
 							req.session.message = "changes saved";
 							res.send({redirect: "/dashboard"})
 						})
 				}
 				if (body.action == 'delete'){
-					deleteSubRegions(body)
+					deleteSubSources(body)
 						.then(deleteSubmission)
 						.then(function(){
 							req.session.message = "submission deleted";
@@ -78,7 +79,7 @@ function getRouter(router, database){
 				}
 				if (body.action == 'approve'){
 					markSubmission("a", body)
-						.then(insertRegions)
+						.then(insertSources)
 						.then(function(){
 							req.session.message = "submission approved";
 							res.send({redirect: "/dashboard"})
@@ -87,7 +88,7 @@ function getRouter(router, database){
 				if (body.action == 'reject'){
 					markSubmission("r", body)
 						.then(function(){
-							req.session.message = "submissin rejected";
+							req.session.message = "submission rejected";
 							res.send({redirect: "/dashboard"})
 						})
 				}
@@ -241,11 +242,9 @@ function getRouter(router, database){
 	}
 	
 	function insertSources(body){
-		var sql = 'INSERT INTO sources (sub_id, parent_id, region_type_id, name) VALUES '
-		for (var i = 0; i < body.data.length; i++){
-			sql += "(" + body.subid + "," + body.parent + "," + body.type + "," + database.mysql.escape(body.data[i]) + "),"
-		}
-		sql = sql.substring(0, sql.length - 1);
+		var sql = 'INSERT INTO sources (sub_id, region_id, publisher_id, title, url) VALUES '
+			sql += "(" + body.subid + "," + body.region + "," + body.publisher + "," + database.mysql.escape(body.title) + "," + database.mysql.escape(body.url) + ")";
+		//sql = sql.substring(0, sql.length - 1);
 		return new Promise(function(resolve, reject){	
 			database.mysql.query(sql, databaseHandler);
 			function databaseHandler(err, result) {
@@ -260,7 +259,8 @@ function getRouter(router, database){
 	
 	function insertSubSources(body){
 		var sql = 'INSERT INTO sub_sources (sub_id, region_id, publisher, title, url) VALUES ';
-		sql += "(" + body.subid + "," + body.parent + "," + body.type + "," + database.mysql.escape(body.title) + "," + database.mysql.escape(body.url) + ")";
+		sql += "(" + body.subid + "," + body.region + "," + body.publisher + "," + database.mysql.escape(body.title) + "," + database.mysql.escape(body.url) + ")";
+		//console.log("Query: " + sql);
 		return new Promise(function(resolve, reject){	
 			database.mysql.query(sql, databaseHandler);
 			function databaseHandler(err, result) {
@@ -275,7 +275,7 @@ function getRouter(router, database){
 	
 	function deleteSubSources(body){
 		return new Promise(function(resolve, reject){	
-			database.mysql.query('DELETE FROM sub_regions WHERE sub_id = ?', [body.subid], databaseHandler);
+			database.mysql.query('DELETE FROM sub_sources WHERE sub_id = ?', [body.subid], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err){
 					reject({message: "internal database error: " + err.message});
