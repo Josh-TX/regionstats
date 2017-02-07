@@ -1,3 +1,34 @@
-<h2>testing variables from url:</h2>
-<p>name = {{name}}</p>
-<p>id = {{id}}</p>
+<div class="container" ng-controller="myController">
+	<h1>api tester</h1>
+	
+	<label>/api/</label>
+	<input class="form-control" ng-model="api"></input>
+	<br>
+	<label>key</label>
+	<input class="form-control" ng-model="key"></input>
+	<br>
+	<label>value</label>
+	<input class="form-control" ng-model="value"></input>
+	<br>
+	<button ng-click="submit()">Submit</button>
+</div>
+{{#section 'scripts'}}
+<script>
+app.controller("myController", function($scope, $http){
+	$scope.api = "titles"
+	$scope.key = "region_id"
+	
+	$scope.submit = function(){
+		var obj = {};
+		obj[$scope.key] = $scope.value
+		$http.post("/api/" + $scope.api, obj).then(databaseHandler, errorHandler);
+	}
+	function databaseHandler(response){
+		alert(JSON.stringify(response.data))
+	}
+	function errorHandler(response){
+		alert("error: " + JSON.stringify(response.data))
+	}
+})
+</script>
+{{/section}}

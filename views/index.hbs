@@ -9,14 +9,13 @@
 <!--<p style="padding-left: 10px;">{{makeLink " View users in mongodb server" "mongo"}}</p>-->
 
 <div ng-controller="rootController">
-
-	<button class="btn btn-primary" ng-click="show=!show"> show Sidebar</button>
 	<div ng-controller="sidebarController">
-		<div sidebar="show">
+		<button class="btn btn-primary" ng-click="showSidebar=!showSidebar"> show Sidebar</button>
+		<div sidebar="showSidebar">
 			<sidebar-header>
 				<div class="row">
 					<div class="col-xs-6">
-						<button class="btn btn-default" ng-click="back()" ng-if="state != 'root'">back</button>
+						<button class="btn btn-default" ng-click="stateService.back()" ng-if="stateService.state">back</button>
 					</div>
 					<div class="col-xs-6">
 						<input type="text" class="form-control" placeholder="filter" ng-model="filter" ng-change="filterChanged()"></input>
@@ -24,30 +23,30 @@
 				</div>
 				<div class="row">
 					<div class="col-md-12">
-						<h2 ng-bind="title"></h2>
+						<h2>state = {{ng 'stateService.state'}}</h2>
 					</div>
 				</div>
 			</sidebar-header>
 			<sidebar-body>
-				<div ng-switch="state">
-					<div ng-switch-when="root">
-						<div sidebar-section="'Browse by...'" list="rootList", callback="changeState(obj.newState)"></div>
+				<div ng-switch="stateService.state">
+					<div ng-switch-when="">
+						<div sidebar-section="'Browse by...'" list="stateService.rootList", callback="stateService.pushState(obj.newState, 0)"></div>
 					</div>
 					
-					<div ng-switch-when="region">
-						<div sidebar-section="'Region Groups'" list="regionService.groups", callback="changeState('regionTitle')"></div>
+					<div ng-switch-when="r">
+						<div sidebar-section="''" list="[{name: 'view data'}]" callback="stateService.pushState('t')"></div>
+						<div sidebar-section="'Region Groups'" list="regionService.groups", callback="stateService.pushState('g')" get-name="regionService.getGroupStr(obj)"></div>
 						<!-- child regions -->
 						<div sidebar-section="regionService.getCurrentName()" list="regionService.regions", 
-						callback="regionService.select(obj.id)" empty="'No sub-regions'" loading="regionService.loading"></div>
+						callback="stateService.setID(obj.id)"></div>
 					</div>
-					
-					<div ng-switch-when="cat">
-						<button ng-repeat="cat in catService.cats" class="btn btn-default" ng-click="changeState('catTitle', cat)">{{ng 'cat.name'}}</button>
+					<div ng-switch-when="rt">
+						<div ng-repeat="(key, value) in titleService.titlesByRegion">
+							<div sidebar-section="key" list="value", callback="stateService.pushState('s')"></div>
+						</div>
 					</div>
-					<div ng-switch-when="catTitle">
-						<button ng-repeat="title in catTitle.titles" class="btn btn-default" ng-click="">{{ng 'title.name'}}</button>
-						<p ng-if="catTitle.empty()">No stats found</p>
-						<p ng-if="catTitle.loading">Loading...</p>
+					<div ng-switch-when="c">
+						<div sidebar-section="category" list="catService.cats", callback="stateService.pushState('t', obj.id)"></div>
 					</div>
 				</div>
 			</sidebar-body>
@@ -66,107 +65,160 @@ app.service("catService", function(){
 		{id: 5, name: "Voting"}
 	];
 })
-app.service("catTitle", function($http){
-	var self = this;
-	var allTitles = {};
-	
-	this.loading = false;
-	this.titles = [];
-	this.setCat = function(catid){
-		if (!allTitles[catid]){
-			self.loading = true;
-			self.titles = [];
-			$http.post("/api/titles", {category_id: catid}).then(function(response){
-				allTitles[catid] = response.data;
-				self.titles = response.data
-				self.loading = false;
-			})
-		} else {
-			self.titles = allTitles[catid]
-		}
-	}
-	this.empty = function(){
-		return !self.loading && self.titles.length == 0;
-	}
-})
 
-app.service("regionTitle", function($http){
+
+app.service("titleService", function($http){
 	var self = this;
-	var allTitles = {};
+	
+	var titlesByRegion = {};
+	self.titlesByRegion = {};
 	
 	this.loading = false;
 	this.titles = [];
-	this.setRegion = function(region_id){
-		if (!allTitles[region_id]){
+	this.setTitlesByRegion = function(region_id){
+		if (!titlesByRegion[region_id]){
 			self.loading = true;
 			self.titles = [];
 			$http.post("/api/titles", {region_id: region_id}).then(function(response){
-				allTitles[region_id] = response.data;
-				self.titles = response.data
 				self.loading = false;
+				var obj = {};
+				titlesByRegion[region_id] = obj;
+				response.data.forEach(function(titleObj, ind){
+					if (!obj[titleObj.category_id]){
+						obj[titleObj.category_id] = [];
+					}
+					obj[titleObj.category_id].push(titleObj);
+				});	
+				self.titlesByRegion = obj;
 			})
 		} else {
-			self.titles = allTitles[region_id]
+			self.titlesByRegion = titlesByRegion[region_id]
 		}
 	}
-	this.empty = function(){
-		return !self.loading && self.titles.length == 0;
-	}
 })
 
-app.controller("rootController", function($scope, regionService) {
-})
-
-app.controller("sidebarController", function($http, $scope, regionService, catService, catTitle, regionTitle) {
-	$scope.catService = catService
-	$scope.state = "root";
-	$scope.regionService = regionService;
-	$scope.catTitle = catTitle;
-	$scope.regionTitle = regionTitle;
-	$scope.test = function(obj){
-		alert(JSON.stringify(obj))
-	}
-	$scope.rootList = [
+app.service("stateService", function($timeout, regionService, catService, titleService) {
+	var self = this;
+	var stack = [];
+	
+	this.state = "";
+	this.rootList = [
 		{
-			newState: "region",
+			newState: "r",
 			name: "Browse by Region"
 		},
 		{
-			newState: "cat",
+			newState: "c",
 			name: "Browse by Statistic"
 		}
 	]
-	
-	$scope.changeState = function(newState, data){
-		$scope.state = newState;
-		if (newState == "catTitle"){
-			$scope.catTitle.setCat(data.id);
-		}
-		if (newState == "regionTitle"){
-			$scope.regionTitle.setRegion($scope.regionService.getCurrentID());
-		}
-	}
-	$scope.back = function(){
-		switch($scope.state){
-			case "region":
-				if ($scope.regionService.isNotWorld()){
-					$scope.regionService.back();
-				} else {
-					$scope.state = "root";
+	this.back = function(){
+		switch (self.state){
+			case "r":
+				var id = regionService.back();
+				if (id < 0){
+					stack.pop();
+				}else {
+					stack[stack.length-1].id = id;
 				}
 				break;
-			case "cat":
-				$scope.state = "root";
+			default:
+				stack.pop();
+		}
+		processState();
+	}
+	this.pushState = function(newState, id){
+		stack.push({
+			state: newState,
+			id: id
+		});
+		processState();
+	}
+	this.setID = function(id){
+		stack[stack.length - 1].id = id;
+		processState();
+	}
+	
+	var processState = function(){
+		self.state = "";	
+		if (stack.length == 0){
+			setHash("");
+			return;
+		}
+		var hash = "#";
+		stack.forEach(function(obj){
+			hash += obj.state;
+			if (typeof obj.id != "undefined"){
+				hash += obj.id;
+			}
+			self.state += obj.state;
+		})
+		setHash(hash);
+		var id = stack[stack.length-1].id;
+		switch (self.state){
+			case "r":
+				regionService.select(id);
 				break;
-			case "catTitle":
-				$scope.state = "cat";
-			
+			case "rt":
+				titleService.setTitlesByRegion(stack[stack.length-2].id);
+				break;	
+			default:
+				console.log("processState has no case for state " + self.state)
 		}
 	}
+	function setHash(str){
+		if (str.length == 0){
+			history.pushState("", document.title, window.location.pathname + window.location.search);
+		}
+		window.history.pushState("", document.title, str);
+	}
+	function hashToStack(){
+		var undefined;
+		stack = [];
+		var hash = location.hash;
+		for (var i = 1; i < hash.length; i++){
+			var c = hash.charAt(i++);
+			var match = /^(\d+)/.exec(hash.substring(i));
+			if (match){
+				i += match.length;
+				stack.push({
+					state: c,
+					id: parseFloat(match[1])
+				})
+			} else {
+				stack.push({
+					state: c,
+					id: undefined
+				})
+			}
+		}
+	}
+	window.onhashchange = function(){
+		hashToStack();
+		//processState();
+		$timeout(processState)
+	};
+	hashToStack();
+	processState();
+})
+
+
+app.controller("rootController", function($scope, regionService, typeService) {
+//typeservice needs to be used be instantiated, but atm is unused by a controller
+
+})
+
+app.controller("sidebarController", function($scope, stateService, regionService, catService, titleService) {
+	$scope.stateService = stateService;
+	$scope.catService = catService
+	$scope.regionService = regionService;
+	$scope.titleService = titleService;
+	
 })
 
 </script>
 <script src="/content/services/region.js"></script>
+<script src="/content/services/type.js"></script>
 <script src="/content/directives/sidebar.js"></script>
 <script src="/content/directives/sidebarsection.js"></script>
 {{/section}}

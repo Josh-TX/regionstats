@@ -1,15 +1,19 @@
 app.directive("sidebarSection", function(){
-	var scope;
-	function link(tempScope, element, attr){	
-	
+	function link(scope, element, attr){
+		
+		if (!scope.getName){
+			scope.getName = function(arg){
+				return arg.obj.name
+			}
+		}
 	}
 	return {
 		restrict: "AE",
 		scope: {
 			title: "=sidebarSection",
 			list: "=",
-			callback: "&",
-			empty: "="
+			getName: "&?",
+			callback: "&"
 		},
 		replace: true,
 		templateUrl: "/content/templates/sidebarsection.html",
