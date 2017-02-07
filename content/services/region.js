@@ -2,6 +2,7 @@ app.service("regionService", function($http, event){
 	var self = this;
 	var list = {};
 	var current = {};
+	var types = {};
 	
 	this.filter = "";
 	this.show = false;
@@ -12,9 +13,22 @@ app.service("regionService", function($http, event){
 	this.getCurrentName = function(){
 		return current.name;
 	}
+	this.getGroupStr = function(groupObj){
+		return "Stats for each " + event.request("getTypeName", groupObj.id);
+	}
+	
+	this.getCurrentID = function(){
+		return current.id;
+	}
 	this.back = function() {
-		var id = current.id;;
-		changeRegion(list[id].parent);
+		console.log(JSON.stringify(current))
+		var parent = list[current.id].parent;
+		if (parent < 0){
+			return -1;
+		}
+		changeRegion(parent);
+		//alert("returning true")
+		return parent;
 	}
 	this.select = function(id){
 		changeRegion(id);
@@ -68,7 +82,13 @@ app.service("regionService", function($http, event){
 		if (!list[targetid]){	
 			$http.post('/api/region', {id: current.id}).then(successRegionCallback, errorRegionCallback);
 			if (list[oldid]){
-				current.name = list[oldid].r.find( function(obj){return obj.id == targetid} ).name;
+				var child = list[oldid].r.find( function(obj){return obj.id == targetid} );
+				if (child){
+					current.name = child.name;
+				}
+				else {
+					current.name = "";
+				}
 			}
 			self.loading = true;
 			self.regions = [];

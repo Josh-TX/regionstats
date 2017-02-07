@@ -1,0 +1,9 @@
+<div>
+	<h2 ng-bind="title"></h2>
+	<button class="btn btn-default" ng-repeat="obj in list" ng-click="callback({obj: obj})">
+		{{getName({obj: obj})}}<span class="badge">{{obj.count}}</span>
+	</button>
+	<div ng-if="!list.length && !loading">
+		<p>{{empty}}</p>
+	</div>
+</div>

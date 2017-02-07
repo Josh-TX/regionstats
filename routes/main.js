@@ -17,6 +17,12 @@ function getRouter(router, database){
 		});
 	});
 	
+	
+	router.get('/test', function(req, res, next) {
+		res.render('test', { 
+			title: 'Test - RegionStats'
+		});
+	});
 	//***** check logged in ******
 	router.all("/dashboard", function(req, res, next) {
 		if (req.session.userid > 0){

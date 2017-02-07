@@ -418,7 +418,7 @@ function getRouter(router, database){
 			console.log("insertData");
 			
 			var sql = "INSERT INTO data (sub_id, stat_id, region_id, val) VALUES ";
-			for (var i = 0; i < body.statCount; i++){
+			for (var i = 0; i < body.data.length; i++){
 				for (var j = 0; j < body.data[i].values.length; j++){
 					if (typeof body.data[i].values[j] != "number"){
 						console.log("i = " + i + ", j = " + j);

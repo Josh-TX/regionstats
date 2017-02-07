@@ -89,11 +89,12 @@ function getApp(config, database){
 	var dataRouter = require('./routes/data').getRouter(express.Router(), database);
 	app.use("/data", dataRouter);
 	
+	
 	var regionAPI = require('./api/regionAPI').getRouter(express.Router(), database);
 	app.use("/api", regionAPI);
 	
 	var titleAPI = require('./api/titleAPI').getRouter(express.Router(), database);
-	app.use("/api", titleAPI);
+	app.use("/api/titles", titleAPI);
 	
 	var criteriaAPI = require('./api/criteriaAPI').getRouter(express.Router(), database);
 	app.use("/api", criteriaAPI);

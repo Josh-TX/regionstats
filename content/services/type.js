@@ -20,7 +20,18 @@ app.service("typeService", function($http, event) {
 	event.handleAsync("getTypeName", function(callback, id){
 		getTypeName(callback, id);
 	})
+	event.handle("getTypeName", function(id){
+		var type = self.types.find(function(obj){
+			//console.log(obj.id, id);
+			return obj.id == id;
+		})
+		if (!type){
+			return "???";
+		}
+		return type.name;
+	})
 	function getTypeName(callback, id){
+		//
 		if (self.types.length == 0){
 			setTimeout(function(){
 				getTypeName(callback, id)
