@@ -30,23 +30,26 @@
 			<sidebar-body>
 				<div ng-switch="stateService.state">
 					<div ng-switch-when="">
-						<div sidebar-section="'Browse by...'" list="stateService.rootList", callback="stateService.pushState(obj.newState, 0)"></div>
+						<div sidebar-section="'Browse by...'" list="stateService.rootList", callback="stateService.setState(obj.newState)"></div>
 					</div>
 					
 					<div ng-switch-when="r">
-						<div sidebar-section="''" list="[{name: 'view data'}]" callback="stateService.pushState('t')"></div>
-						<div sidebar-section="'Region Groups'" list="regionService.groups", callback="stateService.pushState('g')" get-name="regionService.getGroupStr(obj)"></div>
+						<div sidebar-section="''" list="[{name: 'view data'}]" callback="stateService.setState('rt')"></div>
+						<div sidebar-section="'Region Groups'" list="regionService.groups", callback="stateService.setState('gt')" get-name="regionService.getGroupStr(obj)"></div>
 						<!-- child regions -->
 						<div sidebar-section="regionService.getCurrentName()" list="regionService.regions", 
 						callback="stateService.setID(obj.id)"></div>
 					</div>
 					<div ng-switch-when="rt">
 						<div ng-repeat="(key, value) in titleService.titlesByRegion">
-							<div sidebar-section="key" list="value", callback="stateService.pushState('s')"></div>
+							<div sidebar-section="key" list="value", callback="stateService.setState('rtc')"></div>
 						</div>
 					</div>
-					<div ng-switch-when="c">
+					<div ng-switch-when="t">
 						<div sidebar-section="category" list="catService.cats", callback="stateService.pushState('t', obj.id)"></div>
+					</div>
+					<div ng-switch-default>
+						<h2>ng-switch has no handler for state {{ng 'stateService.state'}}</h2>
 					</div>
 				</div>
 			</sidebar-body>
@@ -70,15 +73,14 @@ app.service("catService", function(){
 app.service("titleService", function($http){
 	var self = this;
 	
-	var titlesByRegion = {};
+	var titlesByRegion = {}; //
 	self.titlesByRegion = {};
+	self.allTitles = {};
 	
 	this.loading = false;
-	this.titles = [];
 	this.setTitlesByRegion = function(region_id){
 		if (!titlesByRegion[region_id]){
 			self.loading = true;
-			self.titles = [];
 			$http.post("/api/titles", {region_id: region_id}).then(function(response){
 				self.loading = false;
 				var obj = {};
@@ -95,11 +97,30 @@ app.service("titleService", function($http){
 			self.titlesByRegion = titlesByRegion[region_id]
 		}
 	}
+	this.setAllTitles = function(){
+		if (Object.keys(self.allTitles).length == 0){
+			self.loading = true;
+			$http.post("/api/titles", {}).then(function(response){
+				self.loading = false;
+				response.data.forEach(function(titleObj, ind){
+					if (!self.allTitles[titleObj.category_id]){
+						self.allTitles[titleObj.category_id] = [];
+					}
+					self.allTitles[titleObj.category_id].push(titleObj);
+				});	
+			})
+		}
+	}
+	
 })
 
 app.service("stateService", function($timeout, regionService, catService, titleService) {
 	var self = this;
-	var stack = [];
+	
+	//var stack = [];
+	var region_id = 0;
+	var title_id;
+	var stat_id
 	
 	this.state = "";
 	this.rootList = [
@@ -117,47 +138,74 @@ app.service("stateService", function($timeout, regionService, catService, titleS
 			case "r":
 				var id = regionService.back();
 				if (id < 0){
-					stack.pop();
+					self.state = "";
 				}else {
-					stack[stack.length-1].id = id;
+					self.region_id = id;
 				}
 				break;
+			case "rt":
+				self.state = "r";
+				break;
+			case "gt":
+				self.state = "r";
+				break;
+			case "rtc": 
+				self.state = "rt";
+				break;
+			case "gtc":
+				self.state = "gt";
+				break;
+		
+			case "t":
+				self.state = "";
+				break;
+			case "tc":
+				self.state = "t";
+				break;
+			case "tcr":
+				self.state = "tc";
+				break;
 			default:
-				stack.pop();
+				alert("switch has no case for state " + self.state)
 		}
 		processState();
 	}
-	this.pushState = function(newState, id){
-		stack.push({
-			state: newState,
-			id: id
-		});
-		processState();
+	this.setState = function(newState, id){
+		if (typeof id == "number")
+			self.setID(id);
+		self.state = newState;
+		processState(id);
 	}
 	this.setID = function(id){
-		stack[stack.length - 1].id = id;
+		switch (self.state){
+			case "r":
+				regionService.select(id);
+				break;
+			case "rt":
+				break;
+			case "gt":
+				break;
+			case "rtc": 
+				break;
+			case "gtc":
+				break;	
+			case "t":
+				break;
+			case "tc":
+				break;
+			case "tcr":
+				break;
+			default:
+				alert("switch has no case for state " + self.state)
+		}
 		processState();
 	}
 	
 	var processState = function(){
-		self.state = "";	
-		if (stack.length == 0){
-			setHash("");
-			return;
-		}
 		var hash = "#";
-		stack.forEach(function(obj){
-			hash += obj.state;
-			if (typeof obj.id != "undefined"){
-				hash += obj.id;
-			}
-			self.state += obj.state;
-		})
-		setHash(hash);
-		var id = stack[stack.length-1].id;
 		switch (self.state){
 			case "r":
-				regionService.select(id);
+				regionService.select(region_id);
 				break;
 			case "rt":
 				titleService.setTitlesByRegion(stack[stack.length-2].id);

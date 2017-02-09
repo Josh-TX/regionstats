@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.5.1
+-- version 4.5.2
 -- http://www.phpmyadmin.net
 --
--- Host: 127.0.0.1
--- Generation Time: Jan 25, 2017 at 08:43 PM
--- Server version: 10.1.16-MariaDB
--- PHP Version: 5.6.24
+-- Host: localhost
+-- Generation Time: Feb 07, 2017 at 04:13 PM
+-- Server version: 10.1.19-MariaDB
+-- PHP Version: 5.6.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -19,6 +19,18 @@ SET time_zone = "+00:00";
 --
 -- Database: `test`
 --
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`` PROCEDURE `AddGeometryColumn` (`catalog` VARCHAR(64), `t_schema` VARCHAR(64), `t_name` VARCHAR(64), `geometry_column` VARCHAR(64), `t_srid` INT)  begin
+  set @qwe= concat('ALTER TABLE ', t_schema, '.', t_name, ' ADD ', geometry_column,' GEOMETRY REF_SYSTEM_ID=', t_srid); PREPARE ls from @qwe; execute ls; deallocate prepare ls; end$$
+
+CREATE DEFINER=`` PROCEDURE `DropGeometryColumn` (`catalog` VARCHAR(64), `t_schema` VARCHAR(64), `t_name` VARCHAR(64), `geometry_column` VARCHAR(64))  begin
+  set @qwe= concat('ALTER TABLE ', t_schema, '.', t_name, ' DROP ', geometry_column); PREPARE ls from @qwe; execute ls; deallocate prepare ls; end$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -60,6 +72,17 @@ CREATE TABLE `data` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `publishers`
+--
+
+CREATE TABLE `publishers` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `regions`
 --
 
@@ -94,6 +117,22 @@ CREATE TABLE `region_groups` (
 CREATE TABLE `region_types` (
   `id` tinyint(3) UNSIGNED NOT NULL,
   `name` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sources`
+--
+
+CREATE TABLE `sources` (
+  `id` int(11) NOT NULL,
+  `sub_id` int(11) NOT NULL,
+  `region_id` mediumint(9) NOT NULL,
+  `publisher_id` mediumint(9) NOT NULL,
+  `data_count` int(11) NOT NULL,
+  `title` varchar(60) NOT NULL,
+  `url` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -204,7 +243,7 @@ CREATE TABLE `titles` (
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL,
   `username` varchar(32) NOT NULL,
   `email` varchar(64) NOT NULL,
   `password` varchar(64) NOT NULL,
@@ -220,6 +259,12 @@ CREATE TABLE `users` (
 -- Indexes for table `criteria`
 --
 ALTER TABLE `criteria`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `publishers`
+--
+ALTER TABLE `publishers`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -241,6 +286,12 @@ ALTER TABLE `region_types`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `sources`
+--
+ALTER TABLE `sources`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `stats`
 --
 ALTER TABLE `stats`
@@ -251,7 +302,7 @@ ALTER TABLE `stats`
 --
 ALTER TABLE `submissions`
   ADD PRIMARY KEY (`id`);
-  
+
 --
 -- Indexes for table `sub_stats`
 --
@@ -280,6 +331,11 @@ ALTER TABLE `users`
 ALTER TABLE `criteria`
   MODIFY `id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT;
 --
+-- AUTO_INCREMENT for table `publishers`
+--
+ALTER TABLE `publishers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `regions`
 --
 ALTER TABLE `regions`
@@ -294,6 +350,11 @@ ALTER TABLE `region_groups`
 --
 ALTER TABLE `region_types`
   MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `sources`
+--
+ALTER TABLE `sources`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `stats`
 --

@@ -35,7 +35,13 @@ function getRouter(router, database){
 		}
 		
 		else {
-			res.send({message: "No valid parameters"});
+			getAllTitles()
+				.then(function(obj) {
+					res.send(obj);
+				})
+				.catch(function(obj){
+					res.send(obj);
+				})
 		}
 		
 	});
@@ -67,6 +73,24 @@ function getRouter(router, database){
 				WHERE data.region_id = ? \
 				GROUP BY titles.id';	
 			database.mysql.query(sql, [region], databaseHandler);
+			function databaseHandler(err, result) {
+				if(err) {
+					reject({message: "internal database error: " + err.message});
+					return;
+				}
+				resolve(result);
+				return;
+			}
+		})
+	};
+	
+	function getAllTitles() {
+		return new Promise(function(resolve, reject) {
+			var sql = 'SELECT titles.id, titles.name, titles.category_id, count(*) AS count FROM titles \
+				JOIN stats ON stats.title_id = titles.id \
+				JOIN data ON data.stat_id = stats.id \
+				GROUP BY titles.id';	
+			database.mysql.query(sql, databaseHandler);
 			function databaseHandler(err, result) {
 				if(err) {
 					reject({message: "internal database error: " + err.message});
