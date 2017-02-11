@@ -6,6 +6,10 @@ textarea{
 {{/section}}
 	{{>navigation_bar}}
 <div class="container-fluid" ng-controller="uploadRegion">
+	<div ng-if="!subid">
+		<button class="btn btn-primary" ng-click="form.quickSubmit('sat')">QuickSubmit SAT data</button>
+		<button class="btn btn-primary" ng-click="form.quickSubmit('crime')">QuickSubmit crime data</button>
+	</div>
 	<h1 ng-if="!subid">Upload Data</h1>
 	<h1 ng-if="subid">Edit Data</h1>
 	<div ng-if="!subid" class="row top-buffer form-group" ng-class="{'has-error': form.error.parent}">
@@ -42,7 +46,7 @@ textarea{
 	{{ng "form.error"}}
 	<div ng-if="csv.data.length > 0">
 		<table class="table table-bordered">
-			<tr>
+			<tr ng-if="!subid">
 				<th>Spreadsheet Title</th>
 				<td ng-repeat="header in csv.headers track by $index">{{ng "header"}}</td>
 			</tr>
@@ -184,6 +188,18 @@ textarea{
 		this.titles = [];
 		this.years = [];
 		this.criteria = [];
+		this.quickSubmit = function(name){
+			if (name == "sat"){
+				alert("quickSibmitting sat data")
+				var obj = {"statCount":12,"cats":[4,4,4,4,4,4,4,4,4,4,4,4],"titles":["SAT Test Takers","SAT Critical Reading Scores","SAT Mathematics Scores","SAT Writing Scores","SAT Test Takers","SAT Critical Reading Scores","SAT Mathematics Scores","SAT Writing Scores","SAT Test Takers","SAT Critical Reading Scores","SAT Mathematics Scores","SAT Writing Scores"],"years":[2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015,2015],"criteria":[[],[],[],[],["Male"],["Male"],["Male"],["Male"],["Female"],["Female"],["Female"],["Female"]],"data":[{"id":201,"values":[2929,545,538,533,1253,559,569,535,1676,535,514,532]},{"id":202,"values":[3799,509,503,482,1637,512,521,473,2162,507,490,490]},{"id":203,"values":[21545,523,527,502,9531,529,548,497,12014,518,510,506]},{"id":204,"values":[1207,568,569,551,523,576,593,546,684,562,551,555]},{"id":205,"values":[241553,495,506,491,108336,502,527,489,133217,490,488,493]},{"id":206,"values":[6485,582,587,567,2914,585,607,559,3571,580,570,573]},{"id":207,"values":[36445,504,506,504,17554,505,520,496,18891,503,492,511]},{"id":208,"values":[9823,462,461,445,4724,460,471,434,5099,465,453,456]},{"id":210,"values":[122939,486,480,468,56599,486,494,458,66340,486,468,477]},{"id":211,"values":[72898,490,485,475,33276,494,501,468,39622,486,472,480]},{"id":212,"values":[7888,487,508,477,3478,491,523,471,4410,483,495,482]},{"id":213,"values":[17695,467,463,442,8899,463,472,428,8796,472,454,457]},{"id":214,"values":[5728,599,616,587,2770,603,635,583,2958,595,598,591]},{"id":215,"values":[47548,496,499,478,21119,503,519,473,26429,490,483,482]},{"id":216,"values":[986,589,600,566,440,594,622,562,546,586,582,569]},{"id":217,"values":[1528,588,592,568,704,596,618,569,824,581,571,568]},{"id":218,"values":[1731,588,587,574,834,593,612,572,897,583,565,576]},{"id":219,"values":[1976,563,559,553,905,578,586,558,1071,551,537,549]},{"id":220,"values":[13936,468,473,451,7157,461,479,435,6779,476,465,467]},{"id":221,"values":[48845,491,493,478,23014,491,507,470,25831,490,480,486]},{"id":222,"values":[61277,516,529,507,29068,521,547,503,32209,512,514,511]},{"id":223,"values":[3765,594,609,585,1769,604,636,587,1996,584,585,583]},{"id":224,"values":[3205,595,607,576,1461,597,627,569,1744,593,590,581]},{"id":225,"values":[858,580,563,570,371,599,596,578,487,566,539,563]},{"id":226,"values":[2379,596,599,582,1161,595,613,572,1218,597,585,592]},{"id":227,"values":[1362,561,556,538,591,565,575,535,771,558,542,541]},{"id":228,"values":[723,589,590,576,317,593,609,576,406,586,575,576]},{"id":229,"values":[11487,494,494,470,4939,499,513,463,6548,490,479,475]},{"id":230,"values":[10738,525,530,511,5062,528,548,504,5676,522,514,518]},{"id":231,"values":[85021,500,521,499,40745,504,536,494,44276,497,507,504]},{"id":232,"values":[2292,551,544,528,1025,557,565,526,1267,546,526,530]},{"id":233,"values":[153543,489,502,478,72259,492,517,472,81284,486,488,483]},{"id":234,"values":[58022,498,504,476,25776,502,520,470,32246,494,491,481]},{"id":235,"values":[134,597,608,586,61,606,630,586,73,590,589,585]},{"id":236,"values":[17253,557,563,537,8202,564,583,535,9051,550,545,539]},{"id":237,"values":[1720,576,569,548,831,583,589,543,889,569,551,552]},{"id":238,"values":[17405,523,521,502,7627,531,543,497,9778,518,503,506]},{"id":239,"values":[96826,499,504,482,44607,504,521,477,52219,494,489,486]},{"id":241,"values":[8103,494,494,484,3727,497,509,477,4376,491,481,489]},{"id":242,"values":[26336,488,487,467,11885,492,503,458,14451,485,473,474]},{"id":243,"values":[238,592,597,564,109,602,623,566,129,584,575,562]},{"id":244,"values":[4497,581,574,568,2226,586,592,564,2271,576,556,572]},{"id":245,"values":[193768,470,486,454,90015,472,500,448,103753,468,474,459]},{"id":246,"values":[1527,579,575,554,744,590,601,555,783,568,550,553]},{"id":247,"values":[4564,523,524,507,2119,524,539,499,2445,521,510,515]},{"id":248,"values":[59621,518,516,499,27856,521,532,491,31765,516,502,506]},{"id":249,"values":[44423,502,510,484,20769,503,525,474,23654,502,498,492]},{"id":250,"values":[2501,509,497,495,1050,512,513,486,1451,506,487,503]},{"id":251,"values":[2277,591,605,575,1058,597,627,572,1219,586,585,577]},{"id":252,"values":[181,589,586,562,83,582,604,554,98,595,571,569]},{"id":209,"values":[4718,441,440,432,2330,443,453,427,2388,440,427,437]},{"id":240,"values":[3416,463,450,450,1718,457,457,437,1698,468,443,463]}]};
+				$http.post('/data/upload', obj).then(successCallback, errorCallback);
+			}
+			if (name == "crime"){
+				alert("quickSibmitting crime data")
+				var obj = {"statCount":21,"cats":[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"titles":["Population","Violent Crime","Violent Crime per Capita","Murders","Murders per Capita","Rapes","Rapes per Capita","Rapes (legacy definition)","Rapes per Capita (legacy definition)","Robberies","Robberies per Capita","Aggravated Assaults","Aggravated Assaults per Capita","Property Crimes","Property Crimes per Capita","Burglaries","Burglaries per Capita","Larceny-Thefts","Larceny-Thefts per Capita","Motor Vehicle Thefts","Motor Vehicle Thefts per Capita"],"years":[2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014,2014],"criteria":[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]],"data":[{"id":201,"values":["",20727,427.4,276,5.7,2005,41.3,1436,29.6,4701,96.9,13745,283.4,154094,3177.6,39715,819,104238,2149.5,10141,209.1]},{"id":203,"values":[6731,26916,399.9,319,4.7,3378,50.2,2464,36.6,6249,92.8,16970,252.1,215240,3197.5,43562,647.1,154091,2289.1,17587,261.3]},{"id":204,"values":[2966,14243,480.1,165,5.6,1763,59.4,1182,39.8,2050,69.1,10265,346,99018,3338,24790,835.7,68627,2313.5,5601,188.8]},{"id":205,"values":[38802,153709,396.1,1699,4.4,11527,29.7,8398,21.6,48680,125.5,91803,236.6,947192,2441.1,202670,522.3,592670,1527.4,151852,391.3]},{"id":206,"values":[5355,16554,309.1,151,2.8,3039,56.7,2121,39.6,3039,56.7,10325,192.8,135510,2530.1,23472,438.2,99464,1857.1,12574,234.8]},{"id":207,"values":[3596,8522,236.9,86,2.4,782,21.7,571,15.9,3159,87.8,4495,125,69070,1920.4,11955,332.4,51005,1418.1,6110,169.9]},{"id":208,"values":[935614,4576,489.1,54,5.8,386,41.3,249,26.6,1269,135.6,2867,306.4,27900,2982,5768,616.5,20865,2230.1,1267,135.4]},{"id":210,"values":[19893,107521,540.5,1149,5.8,8563,43,6051,30.4,24914,125.2,72895,366.4,679446,3415.5,143220,719.9,493647,2481.5,42579,214]},{"id":211,"values":[10097,38097,377.3,580,5.7,3048,30.2,2159,21.4,12417,123,22052,218.4,331316,3281.2,76428,756.9,228034,2258.4,26854,266]},{"id":212,"values":[1419,3680,259.2,26,1.8,445,31.3,314,22.1,1107,78,2102,148.1,43297,3050,7778,547.9,31640,2228.9,3879,273.3]},{"id":213,"values":[1634,3468,212.2,32,2,609,37.3,468,28.6,204,12.5,2623,160.5,30316,1854.8,6428,393.3,22227,1359.9,1661,101.6]},{"id":214,"values":[12880,47663,370,685,5.3,4159,32.3,3081,23.9,15299,118.8,27520,213.7,267385,2075.9,50008,388.2,199926,1552.2,17451,135.5]},{"id":215,"values":[6596,24099,365.3,330,5,2186,33.1,1615,24.5,6897,104.5,14686,222.6,174776,2649.4,36893,559.3,124022,1880,13861,210.1]},{"id":216,"values":[3107,8497,273.5,60,1.9,1128,36.3,828,26.6,1045,33.6,6264,201.6,65056,2093.8,14428,464.4,46477,1495.8,4151,133.6]},{"id":217,"values":[2904,10123,348.6,91,3.1,1411,48.6,1075,37,1362,46.9,7259,250,79431,2735.2,15828,545,56697,1952.4,6906,237.8]},{"id":218,"values":[4413,9340,211.6,160,3.6,1440,32.6,883,20,3336,75.6,4404,99.8,99166,2246.9,23244,526.7,69604,1577.1,6318,143.2]},{"id":219,"values":[4649,23934,514.7,477,10.3,1375,29.6,992,21.3,5695,122.5,16387,352.4,160824,3458.8,38337,824.5,112596,2421.6,9891,212.7]},{"id":220,"values":[1330,1700,127.8,21,1.6,485,36.5,360,27.1,304,22.9,890,66.9,26421,1986.4,5030,378.2,20592,1548.2,799,60.1]},{"id":221,"values":[5976,26661,446.1,365,6.1,1619,27.1,1144,19.1,9544,159.7,15133,253.2,149859,2507.5,28012,468.7,108745,1819.6,13102,219.2]},{"id":222,"values":[6745,26399,391.4,132,2,2180,32.3,1629,24.1,6036,89.5,18051,267.6,125267,1857.1,24964,370.1,92043,1364.5,8260,122.5]},{"id":223,"values":[9909,42348,427.3,535,5.4,6273,63.3,4049,40.9,8021,80.9,27519,277.7,202547,2043.9,44184,445.9,137206,1384.5,21157,213.5]},{"id":224,"values":[5457,12505,229.1,88,1.6,2001,36.7,1452,26.6,3687,67.6,6729,123.3,125377,2297.5,20773,380.7,96237,1763.5,8367,153.3]},{"id":225,"values":[2994,8338,278.5,258,8.6,1058,35.3,764,25.5,2430,81.2,4592,153.4,87462,2921.2,24352,813.3,58591,1956.9,4519,150.9]},{"id":226,"values":[6063,26856,442.9,403,6.6,2379,39.2,1706,28.1,5592,92.2,18482,304.8,176237,2906.5,35258,581.5,124622,2055.3,16357,269.8]},{"id":227,"values":[1023,3313,323.7,37,3.6,541,52.9,430,42,203,19.8,2532,247.4,25312,2472.9,3595,351.2,19674,1922.1,2043,199.6]},{"id":228,"values":[1881,5275,280.4,54,2.9,862,45.8,620,33,1043,55.4,3316,176.2,47479,2523.5,7950,422.5,35074,1864.1,4455,236.8]},{"id":229,"values":[2839,18045,635.6,170,6,1357,47.8,995,35,5954,209.7,10564,372.1,74538,2625.4,21927,772.3,42426,1494.3,10185,358.7]},{"id":230,"values":[1326,2602,196.1,12,0.9,594,44.8,458,34.5,537,40.5,1459,110,26041,1962.7,4162,313.7,21022,1584.4,857,64.6]},{"id":231,"values":[8938,23346,261.2,349,3.9,1274,14.3,953,10.7,10498,117.5,11225,125.6,154993,1734.1,31710,354.8,111578,1248.3,11705,131]},{"id":232,"values":[2085,12459,597.4,101,4.8,1475,70.7,1071,51.4,2086,100,8797,421.8,73877,3542.3,18505,887.3,49082,2353.4,6290,301.6]},{"id":233,"values":[19746,75398,381.8,617,3.1,5433,27.5,3918,19.8,24045,121.8,45303,229.4,339282,1718.2,50781,257.2,272765,1381.4,15736,79.7]},{"id":234,"values":[9943,32767,329.5,510,5.1,2420,24.3,1740,17.5,8416,84.6,21421,215.4,285697,2873.1,79373,798.2,192694,1937.8,13630,137.1]},{"id":235,"values":[739482,1960,265.1,22,3,358,48.4,276,37.3,173,23.4,1407,190.3,15605,2110.3,2707,366.1,11384,1539.5,1514,204.7]},{"id":236,"values":[11594,33030,284.9,464,4,5042,43.5,4097,35.3,12753,110,14771,127.4,324528,2799.1,78845,680,227668,1963.6,18015,155.4]},{"id":237,"values":[3878,15744,406,175,4.5,1777,45.8,1277,32.9,3048,78.6,10744,277,115982,2990.7,29508,760.9,75891,1956.9,10583,272.9]},{"id":238,"values":[3970,9224,232.3,81,2,1458,36.7,1052,26.5,2093,52.7,5592,140.8,114305,2879,17230,434,87526,2204.6,9549,240.5]},{"id":239,"values":[12787,40164,314.1,614,4.8,3827,29.9,2787,21.8,13534,105.8,22189,173.5,247016,1931.7,45720,357.5,188256,1472.2,13040,102]},{"id":241,"values":[1055,2313,219.2,25,2.4,361,34.2,253,24,529,50.1,1398,132.5,22935,2173.6,4823,457.1,16279,1542.8,1833,173.7]},{"id":242,"values":[4832,24052,497.7,311,6.4,2068,42.8,1480,30.6,3997,82.7,17676,365.8,167217,3460.3,36721,759.9,117594,2433.4,12902,267]},{"id":243,"values":[853175,2786,326.5,20,2.3,470,55.1,413,48.4,200,23.4,2096,245.7,15902,1863.9,2818,330.3,12077,1415.5,1007,118]},{"id":244,"values":[6549,39848,608.4,371,5.7,2531,38.6,1861,28.4,7265,110.9,29681,453.2,200447,3060.6,46642,712.2,141206,2156,12599,192.4]},{"id":245,"values":[26956,109414,405.9,1184,4.4,11393,42.3,8236,30.6,31181,115.7,65656,243.6,813934,3019.4,169234,627.8,576154,2137.3,68546,254.3]},{"id":246,"values":[2942,6346,215.6,67,2.3,1454,49.4,945,32.1,1312,44.6,3513,119.4,84711,2878.5,11518,391.4,65895,2239.1,7298,248]},{"id":247,"values":[626562,622,99.3,10,1.6,110,17.6,99,15.8,70,11.2,432,68.9,9551,1524.4,2034,324.6,7273,1160.8,244,38.9]},{"id":248,"values":[8326,16340,196.2,338,4.1,2310,27.7,1432,17.2,4292,51.5,9400,112.9,160720,1930.3,23122,277.7,129933,1560.5,7665,92.1]},{"id":249,"values":[7061,20136,285.2,174,2.5,2695,38.2,2171,30.7,5640,79.9,11627,164.7,261706,3706.1,55290,783,175769,2489.1,30647,434]},{"id":250,"values":[1850,5588,302,74,4,505,27.3,285,15.4,651,35.2,4358,235.5,37648,2034.7,8973,484.9,26779,1447.3,1896,102.5]},{"id":251,"values":[5757,16714,290.3,165,2.9,1674,29.1,1168,20.3,5066,88,9809,170.4,120238,2088.3,21216,368.5,89103,1547.6,9919,172.3]},{"id":252,"values":[584153,1142,195.5,16,2.7,174,29.8,126,21.6,53,9.1,899,153.9,11477,1964.7,1689,289.1,9185,1572.4,603,103.2]}]}
+				$http.post('/data/upload', obj).then(successCallback, errorCallback);
+			}
+		}
 		
 		this.submit = function(action){
 			var filteredData = self.data.filter(function(obj){
@@ -220,13 +236,16 @@ textarea{
 			}
 			self.error = dataValidate(obj);
 			if (self.error.none){
-			console.log(action)
+				console.log("action = " + action)
+				console.log("printing object being sent")
 				console.log(JSON.stringify(obj));
 				if (action){
 					obj.action = action;
 					obj.subid = {{subid}};
 					$http.post('/data/edit', obj).then(successCallback, errorCallback);
 				} else {
+					alert("returning");
+					return;
 					$http.post('/data/upload', obj).then(successCallback, errorCallback);
 				}
 			}
@@ -479,10 +498,12 @@ textarea{
 			event.broadcast("titleSelections", self.selections);
 		});
 		event.listen("initialTitles", function(titles){
-			var mappedTitles = titles.map(function(str){
+			var mappedTitles = titles.map(function(str, index){
 				if (/\d+/.test(str)){
 					var id = parseFloat(str);
 					var name = "loading...";
+					//the actual title name is loaded in databaseHandler. 
+					//the databaseHandler will be run after this, since it will be called asyncronously from catService
 				} else {
 					var id = 0;
 					var name = str;
@@ -490,29 +511,36 @@ textarea{
 				return {id: id, name: name}
 			})
 			self.selections = mappedTitles;
+			
 			event.broadcast("titleSelections", self.selections);
 		});
-		function setCat(index, id){
+		function setCat(index, catid){
 			self.selections[index].name = "";
 			self.selections[index].id = 0;
-			self.catIDs[index] = id;
-			if (!titles[id] && !activeRequests[id]){
-				activeRequests[id] = true;
-				$http.post("/api/titles", {category_id: id}).then(databaseHandler.bind(null, id), errorCallback);
+			self.catIDs[index] = catid;
+			if (!titles[catid] && !activeRequests[catid]){
+				activeRequests[catid] = true;
+				$http.post("/api/titles", {category_id: catid}).then(databaseHandler.bind(null, catid), errorCallback);
 			}
 		}
-		function databaseHandler(id, response){
-			activeRequests[id] = false;
-			titles[id] = response.data;
+		function databaseHandler(catid, response){
+			activeRequests[catid] = false;
+			titles[catid] = response.data;
+			//iterate through selections that use this catid, and assign the selection's name
 			for (var i = 0; i < statCount; i++){
-				if (self.catIDs[i] == id && self.selections[i].id > 0){
-					var title = titles[id].find(function(obj){
-						return obj.id == self.selections[i].id
-					})
-					if (title){
-						self.selections[i].name = title.name;
-					} else {
-						alert("error finding title " + self.selections[i].id);
+				if (self.catIDs[i] == catid){
+					if (self.selections[i].id > 0){
+						var title = titles[catid].find(function(obj){
+							return obj.id == self.selections[i].id
+						})
+						if (title){
+							self.selections[i].name = title.name;
+						} else {
+							alert("error finding title " + self.selections[i].id);
+						}
+					}
+					else {
+						self.changed(i);
 					}
 				}
 			}
@@ -584,13 +612,15 @@ textarea{
 			self.selections[col].splice(row, 1)
 		}
 		this.changed = function(col, row){
+			//return;
+			//alert("changed " + col + ", " + row)
 			var str = self.selections[col][row].name;
 			self.suggestions = [];
 			if (str.length < 2){
 				return;
 			}
 			//find suggestions from other criteria fields
-			for (var i = 0; i < statCount; i++){
+			for (var i = 0; i < /*statCount*/ self.selections.length; i++){
 				if (i == col){
 					continue;
 				}
@@ -646,7 +676,7 @@ textarea{
 				$timeout(initialCriteriaFunc, 100, initialCriteria);
 				return;
 			}
-			self.selections = initialCriteria.map(function(col){
+			/*self.selections = initialCriteria.map(function(col){
 				return col.map(function(row){
 					if (/\d+/.test(row)){
 						var found = criteria.find(function(obj){return obj.id == row});
@@ -659,10 +689,31 @@ textarea{
 					}else {
 						var id = 0;
 						var name = row;
+						//self.changed(col, row);
 					}
 					return {id: id, name: name};
 				});
-			})
+			})*/
+			self.selections = [];
+			for (var i = 0; i < initialCriteria.length; i++){
+				self.selections.push([])
+				for (var j = 0; j < initialCriteria[i].length; j++){
+					var row = initialCriteria[i][j];
+					if (/\d+/.test(row)){
+						var found = criteria.find(function(obj){return obj.id == row});
+						if (!found){
+							alert("error finding criteria " + row);
+							self.selections[i].push({id: 0, name: ""});
+						} else {
+							self.selections[i].push({id: row, name: found.name});
+						}
+					}else {
+						self.selections[i].push({id: 0, name: row});
+						self.changed(i, j);
+					}
+				}
+			}
+			
 			event.broadcast("criteriaSelections", self.selections);
 		}
 	})

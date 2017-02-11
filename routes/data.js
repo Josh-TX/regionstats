@@ -266,34 +266,48 @@ function getRouter(router, database){
 		return new Promise(function(resolve, reject){
 			var sql = "INSERT INTO titles (sub_id, category_id, name) VALUES ";
 			var insertionCount = 0;
+			var newTitles = {};
 			for (var i = 0; i < body.statCount; i++){
 				if (typeof body.titles[i] == "number"){
-					console.log("before continuing " + body.titles[i]);
 					continue;
 				}
+				if (typeof newTitles[body.titles[i]] == "number"){
+					console.log("continuing because number")
+					continue;
+				}
+				newTitles[body.titles[i]] = 0;
 				insertionCount++;
 				sql += "(" + body.subid + "," + body.cats[i] + "," + database.mysql.escape(body.titles[i]) + "),"
 			}
+			if (insertionCount == 0){
+				console.log("no new titles")
+				resolve(body);
+				return;
+			}
+			console.log("newtitles: " + JSON.stringify(newTitles))
 			sql = sql.substring(0, sql.length - 1);
-			console.log("titles: " + sql);
 			database.mysql.query(sql, databaseHandler);
 			function databaseHandler(err, result) {
-				console.log("title handler")
 				if (err){
 					reject({message: "internal database error: "  + err.message});
 					return;
 				}
 				var insertId = result.insertId;
-				console.log("before title insertid = " + insertId + " : " + result.insertId)
 				for (var i = 0; i < body.statCount; i++){
 					if (typeof body.titles[i] == "number"){
 						console.log("after continuing " + body.titles[i]);
 						continue;
 					}
+					if (newTitles[body.titles[i]]){ //true if it's a nonzero number
+						console.log("newTitles was true")
+						body.titles[i] = newTitles[body.titles[i]];
+						continue;
+					}
+					newTitles[body.titles[i]] = insertId;
 					body.titles[i] = insertId;
 					insertId++;
 				}
-				console.log("after title  insertid = " + insertId)
+				console.log("titles after: " + JSON.stringify(body.titles[i]))
 				resolve(body);
 			}
 		});
@@ -335,21 +349,20 @@ function getRouter(router, database){
 			console.log("before body.criteria = " + JSON.stringify(body.criteria));
 			var sql = "INSERT INTO criteria (sub_id, name) VALUES ";
 			var insertionCount = 0;
-			var criteriaToIndex = {};
+			var newCriteria = {};
 			for (var i = 0; i < body.criteria.length; i++){
 				console.log(i + " : " + body.criteria[i].length)
 				for (var j = 0; j < body.criteria[i].length; j++){
 					if (typeof body.criteria[i][j] == "number"){
-						console.log("cont number: " + body.criteria[i][j])
+						console.log("continue cuz number: " + body.criteria[i][j])
 						continue;
 					}
-					if (criteriaToIndex[body.criteria[i][j]]){
-						console.log("cont key match: " + body.criteria[i][j] + " : " + JSON.stringify(criteriaToIndex))
+					if (typeof newCriteria[body.criteria[i][j]] == "number"){
+						console.log("newCriteria match" + body.criteria[i][j])
 						continue;
 					}
-					criteriaToIndex[body.criteria[i][j]] = insertionCount;
-					console.log("insertionCount++;")
 					insertionCount++;
+					newCriteria[body.criteria[i][j]] = 0;
 					sql += "(" + body.subid + "," + database.mysql.escape(body.criteria[i][j]) + "),"
 				}
 			}
@@ -371,10 +384,13 @@ function getRouter(router, database){
 				console.log("insertid = " + insertId)
 				for (var i = 0; i < body.criteria.length; i++){
 					for (var j = 0; j < body.criteria[i].length; j++){
-						if (typeof body.criteria[i][j] == "number"){
+						if (newCriteria[body.criteria[i][j]]){//true if it's a nonzero number
+							body.criteria[i][j] = newCriteria[body.criteria[i][j]]
 							continue;
 						}
-						body.criteria[i][j] = criteriaToIndex[body.criteria[i][j]] + insertId;
+						newCriteria[body.criteria[i][j]] = insertId
+						body.criteria[i][j] = insertId
+						insertId++;
 					}
 				}
 				console.log("after body.criteria = " + JSON.stringify(body.criteria));
