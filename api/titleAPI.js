@@ -34,6 +34,21 @@ function getRouter(router, database){
 				})
 		}
 		
+		else if (req.body.hasOwnProperty("group_id")){
+			if (!/\d+/.test(req.body.group_id)){
+				res.send({message: "group id not a valid number"});
+				return;
+			}	
+			getGroupInfo(req.body.group_id)
+				.then(getTitlesFromGroup)
+				.then(function(obj) {
+					res.send(obj);
+				})
+				.catch(function(obj){
+					res.send(obj);
+				})
+		}
+		
 		else {
 			getAllTitles()
 				.then(function(obj) {
@@ -59,6 +74,7 @@ function getRouter(router, database){
 					reject({message: "internal database error: " + err.message});
 					return;
 				}
+				console.log(JSON.stringify(result))
 				resolve(result);
 				return;
 			}
@@ -83,6 +99,48 @@ function getRouter(router, database){
 			}
 		})
 	};
+	function getTitlesFromGroup(body) {
+		console.log(JSON.stringify(body))
+		return new Promise(function(resolve, reject) {
+			var sql = "SELECT titles.name, titles.id, titles.category_id, count(*) AS count FROM titles \
+						JOIN stats ON stats.title_id = titles.id \
+						JOIN data ON data.stat_id = stats.id \
+						JOIN ( \
+							SELECT id FROM regions \
+							WHERE parent_id = ? AND region_type_id = ? \
+							) AS r ON r.id = data.region_id \
+						GROUP BY titles.id"
+			database.mysql.query(sql, [body.region_id, body.region_type_id], databaseHandler);
+			function databaseHandler(err, result) {
+				if(err) {
+					reject({message: "internal database error: " + err.message});
+					return;
+				}
+				
+				resolve(result);
+				return;
+			}
+		})
+	};
+	
+	function getGroupInfo(group_id){
+		return new Promise(function(resolve, reject) {
+			var sql = 'SELECT region_id, region_type_id FROM region_groups WHERE id = ?';
+			database.mysql.query(sql, [group_id], databaseHandler);
+			function databaseHandler(err, result) {
+				if(err) {
+					reject({message: "internal database error: " + err.message});
+					return;
+				}
+				if (result.length == 0){
+					reject({message: "error finding group for id " + group_id});
+					return;
+				}
+				resolve(result[0]);
+				return;
+			}
+		})
+	}
 	
 	function getAllTitles() {
 		return new Promise(function(resolve, reject) {

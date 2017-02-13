@@ -58,10 +58,15 @@ The response will only include child regions that have data for that statistic.
 ```
 # /api/titles
 Requests must include 1 parameter set
-## Paremeters
+## Paremeter Sets
 * **region_id** The id of the parent region
 
 The response will include all titles that the region has data for
+
+---
+* **group_id** The id of the region_group
+
+The response will include all titles that the region group has data for
 
 ---
 * **category_id** the id of the category
@@ -69,6 +74,7 @@ The response will include all titles that the region has data for
 The response will include all titles in that category
 
 ## Response
+Count will not necessarily count all data for that title. Rather it will count all data that matches the parameters' criteria
 ```
 [
 	{
