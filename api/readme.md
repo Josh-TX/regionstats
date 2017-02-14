@@ -7,6 +7,8 @@ All parameters must be properties of a JSON
 * [Region](#apiregion)
 * [Region Types](#apiregiontype)
 * [Titles](#apititles)
+* [Stats](#apistats)
+* [Criteria](#apicriteria)
 
 # /api/region
 Requests must include 1 parameter set
@@ -74,7 +76,7 @@ The response will include all titles that the region group has data for
 The response will include all titles in that category
 
 ## Response
-Count will not necessarily count all data for that title. Rather it will count all data that matches the parameters' criteria
+Count will not necessarily count all data for each title. Rather it will count all data that matches the parameters' conditions
 ```
 [
 	{
@@ -82,6 +84,53 @@ Count will not necessarily count all data for that title. Rather it will count a
 		name: (name of title)
 		category_id: (id of category)
 		count: (amount of data for this title)
+	},
+	...
+]
+```
+
+# /api/stats
+Requests must include 1 parameter set
+
+## Paremeter Sets
+
+* **title_id** The id of the stat's title
+* **region_id** The id of the parent region
+
+The response will include all stats that have the specified title, and the region has data for
+
+---
+* **title_id** The id of the stat's title
+* **group_id** The id of the region_group
+
+The response will include all stats that have the specified title, and the region group has data for
+
+## Response
+Count will not necessarily count all data for each stat. Rather it will count all data that matches the parameters' conditions
+```
+[
+	{
+		stat_id: (id of stat)
+		criteria: (csv string of each criteria id. null if no criteria)
+		count: (amount of data for this stat)
+	},
+	...
+]
+```
+
+# /api/criteria
+
+## Paremeters
+
+(*none*)
+
+## Response
+```
+[
+	{
+		id: (id of the criteria)
+		name: (name of the criteria)
+		count: (amount of data for the criteria)
 	},
 	...
 ]

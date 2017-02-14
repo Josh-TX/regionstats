@@ -1,33 +1,55 @@
 <div class="container" ng-controller="myController">
 	<h1>api tester</h1>
-	
+	<hr>
 	<label>/api/</label>
 	<input class="form-control" ng-model="api"></input>
 	<br>
-	<label>key</label>
-	<input class="form-control" ng-model="key"></input>
-	<br>
-	<label>value</label>
-	<input class="form-control" ng-model="value"></input>
-	<br>
-	<button ng-click="submit()">Submit</button>
+	<div class="row">
+		<div class="col-sm-6">
+			<label>key</label>
+			<input class="form-control" ng-model="key1"></input>
+		</div>
+		<div class="col-sm-6">
+			<label>value</label>
+			<input class="form-control" ng-model="value1"></input>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-6">
+			<label>key 2</label>
+			<input class="form-control" ng-model="key2"></input>
+		</div>
+		<div class="col-sm-6">
+			<label>value 2</label>
+			<input class="form-control" ng-model="value2"></input>
+		</div>
+	</div>
+	<button class="btn btn-primary" ng-click="submit()">Submit</button>
+	<h2>output</h2>
+	<hr>
+	<p ng-bind="output"></p>
 </div>
 {{#section 'scripts'}}
 <script>
 app.controller("myController", function($scope, $http){
 	$scope.api = "titles"
-	$scope.key = "region_id"
+	$scope.key1 = ""
+	$scope.key2 = ""
 	
 	$scope.submit = function(){
 		var obj = {};
-		obj[$scope.key] = $scope.value
+		if ($scope.key1 && $scope.value1)
+			obj[$scope.key1] = $scope.value1
+		if ($scope.key2 && $scope.value2)
+			obj[$scope.key2] = $scope.value2
 		$http.post("/api/" + $scope.api, obj).then(databaseHandler, errorHandler);
+		$scope.output = "loading...";
 	}
 	function databaseHandler(response){
-		alert(JSON.stringify(response.data))
+		$scope.output = JSON.stringify(response.data)
 	}
 	function errorHandler(response){
-		alert("error: " + JSON.stringify(response.data))
+		$scope.output = "error: " + JSON.stringify(response.data)
 	}
 })
 </script>

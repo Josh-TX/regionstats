@@ -14,7 +14,8 @@ app.service("regionService", function($http, event){
 		return current.name;
 	}
 	this.getGroupStr = function(groupObj){
-		return "Stats for each " + event.request("getTypeName", groupObj.id);
+		
+		return "Stats for each " + event.request("getTypeName", groupObj.type);
 	}
 	
 	this.getCurrentID = function(){

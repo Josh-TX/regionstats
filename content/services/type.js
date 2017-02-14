@@ -22,7 +22,7 @@ app.service("typeService", function($http, event) {
 	})
 	event.handle("getTypeName", function(id){
 		var type = self.types.find(function(obj){
-			//console.log(obj.id, id);
+			console.log("getTypeName", obj.id, id);
 			return obj.id == id;
 		})
 		if (!type){

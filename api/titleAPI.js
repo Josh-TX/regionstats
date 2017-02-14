@@ -4,7 +4,6 @@ function getRouter(router, database){
 	});*/
 
 	router.post("*", function(req, res, next) {
-		console.log("api router");
 		if (req.body.hasOwnProperty("category_id")){
 			if (!/\d+/.test(req.body.category_id)){
 				res.send({message: "category id not a valid number"});
@@ -38,8 +37,8 @@ function getRouter(router, database){
 			if (!/\d+/.test(req.body.group_id)){
 				res.send({message: "group id not a valid number"});
 				return;
-			}	
-			getGroupInfo(req.body.group_id)
+			}
+			getGroupInfo(req.body)
 				.then(getTitlesFromGroup)
 				.then(function(obj) {
 					res.send(obj);
@@ -74,7 +73,6 @@ function getRouter(router, database){
 					reject({message: "internal database error: " + err.message});
 					return;
 				}
-				console.log(JSON.stringify(result))
 				resolve(result);
 				return;
 			}
@@ -100,7 +98,6 @@ function getRouter(router, database){
 		})
 	};
 	function getTitlesFromGroup(body) {
-		console.log(JSON.stringify(body))
 		return new Promise(function(resolve, reject) {
 			var sql = "SELECT titles.name, titles.id, titles.category_id, count(*) AS count FROM titles \
 						JOIN stats ON stats.title_id = titles.id \
@@ -122,11 +119,11 @@ function getRouter(router, database){
 			}
 		})
 	};
-	
-	function getGroupInfo(group_id){
+	//EXPECTS: .group_id ADDS: .region_id, .region_type_id
+	function getGroupInfo(body){
 		return new Promise(function(resolve, reject) {
 			var sql = 'SELECT region_id, region_type_id FROM region_groups WHERE id = ?';
-			database.mysql.query(sql, [group_id], databaseHandler);
+			database.mysql.query(sql, [body.group_id], databaseHandler);
 			function databaseHandler(err, result) {
 				if(err) {
 					reject({message: "internal database error: " + err.message});
@@ -136,7 +133,9 @@ function getRouter(router, database){
 					reject({message: "error finding group for id " + group_id});
 					return;
 				}
-				resolve(result[0]);
+				body.region_id = result[0].region_id;
+				body.region_type_id = result[0].region_type_id;
+				resolve(body);
 				return;
 			}
 		})

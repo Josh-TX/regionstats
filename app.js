@@ -96,8 +96,11 @@ function getApp(config, database){
 	var titleAPI = require('./api/titleAPI').getRouter(express.Router(), database);
 	app.use("/api/titles", titleAPI);
 	
+	var statAPI = require('./api/statAPI').getRouter(express.Router(), database);
+	app.use("/api/stats", statAPI);
+	
 	var criteriaAPI = require('./api/criteriaAPI').getRouter(express.Router(), database);
-	app.use("/api", criteriaAPI);
+	app.use("/api/criteria", criteriaAPI);
 
 	var publisherAPI = require('./api/publisherAPI').getRouter(express.Router(), database);
 	app.use("/api", publisherAPI);
