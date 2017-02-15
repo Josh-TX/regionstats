@@ -2,23 +2,49 @@ function getRouter(router, database){
 	/*router.get('/region/upload', function(req, res, next) {
 		res.render('uploadregion');
 	});*/
-
 	router.post('/region', function(req, res, next) {
 		//validateObj.upload(req.body)
 		if (!/\d+/.test(req.body.id)){
 			res.send({message: "id not a valid number"});
 			return;
 		}
-	
-		getChildRegions(req.body)
-			.then(getCurrentRegion)
-			.then(getRegionGroups)
-			.then(function(obj) {
+		var body = {};
+		body.id = req.body.id;
+		var alreadyExists;
+		var primaryKey = body.id;
+		mongoFunctions.get("regions", primaryKey)
+			.then(function(obj){
+				console.log("obj = " + JSON.stringify(obj))
+				if (obj.value){
+					var diff = ((new Date().getTime()) - obj.value.date_inserted.getTime()) / 60000 ;
+					console.log(diff)
+					if (diff < 1){
+						res.send(obj.value);
+						return;
+					} else {
+						alreadyExists = true;
+					}
+					
+				}
+				getChildRegions(body)
+					.then(getCurrentRegion)
+					.then(getRegionGroups)
+					.then(function(obj) {
+						res.send(obj);
+						return obj;
+					})
+					.then(function(obj){
+						mongoFunctions.insertOrUpdate("regions", obj, primaryKey, alreadyExists)
+					})
+					.catch(function(obj){
+						console.log("inner catch: " + obj);
+						res.send(obj);
+					})
+			}).catch(function(obj){
+				console.log("outer catch: " + obj);
 				res.send(obj);
 			})
-			.catch(function(obj){
-				res.send(obj);
-			})
+		
 	});
 
 	router.post('/regionType', function(req, res, next) {
@@ -30,26 +56,15 @@ function getRouter(router, database){
 				res.send(obj);
 			})
 	});
+	var mongoFunctions = require('../modules/mongofunctions').getFunctions(database);
+	/*
+	available functions:
+
+	get(collection, primaryKey)
+	insertOrUpdate(collection, data, primaryKey, alreadyExists)
+
+	*/
 	
-	function getRegionTypes() {
-		return new Promise(function(resolve, reject) {
-			database.mysql.query('SELECT id,name FROM `region_types`', databaseHandler);
-			function databaseHandler(err, result) {
-				if(err) {
-					reject({message: "internal database error: " + err.message});
-					return;
-				}
-				if(result.length > 0) {
-					resolve(result);
-					return;
-				}
-				else {
-					reject({message: "database contains no region_types"});
-					return;
-				}
-			}
-		})
-	};
 
 	function getCurrentRegion(body){
 		return new Promise(function(resolve, reject){
