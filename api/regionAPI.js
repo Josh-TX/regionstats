@@ -99,8 +99,11 @@ function getRouter(router, database){
 
 	function getChildRegions(body){
 		return new Promise(function(resolve, reject){
-			database.mysql.query('SELECT id, name FROM regions WHERE parent_id=(?)', 
-				[body.id], databaseHandler);
+			var sql =  "SELECT regions.name, regions.id, count(data.stat_id) AS count FROM regions \
+						LEFT JOIN data ON data.region_id = regions.id \
+						WHERE regions.parent_id = ? \
+						GROUP BY regions.id"
+			database.mysql.query(sql,[body.id], databaseHandler);
 			function databaseHandler(err, result) {
 				if (err) {
 					reject({message: "internal database error: " + err.message});
