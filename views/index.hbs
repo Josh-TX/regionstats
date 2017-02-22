@@ -115,9 +115,13 @@ app.service("titleService", function($http){
 	
 })
 
-app.service("stateService", function($timeout, regionService, catService, titleService) {
+app.service("stateService", function($timeout, event, regionService, catService, titleService) {
 	var self = this;
-	
+	event.handle("digestCycle", function(){
+		$timeout(function(){
+			
+		});
+	});
 	//var stack = [];
 	var region_id = 0;
 	var title_id;
@@ -203,15 +207,16 @@ app.service("stateService", function($timeout, regionService, catService, titleS
 	}
 	
 	var processState = function(){
-		var hash = "#";
 		switch (self.state){
 			case "":
 				break;
 			case "r":
 				regionService.select(region_id);
+				setHash("#r" + region_id);
 				break;
 			case "rt":
 				titleService.setTitlesByRegion(region_id);
+				setHash("#r" + region_id + "t");
 				break;	
 			default:
 				console.log("processState has no case for state " + self.state)
@@ -223,33 +228,30 @@ app.service("stateService", function($timeout, regionService, catService, titleS
 		}
 		window.history.pushState("", document.title, str);
 	}
-	function hashToStack(){
-		var undefined;
-		stack = [];
+	function parseHash(){
+		var state = "";
 		var hash = location.hash;
 		for (var i = 1; i < hash.length; i++){
 			var c = hash.charAt(i++);
+			state += c;
 			var match = /^(\d+)/.exec(hash.substring(i));
 			if (match){
 				i += match.length;
-				stack.push({
-					state: c,
-					id: parseFloat(match[1])
-				})
+				if (c == "r"){
+					region_id = parseFloat(match[1]);
+				}
 			} else {
-				stack.push({
-					state: c,
-					id: undefined
-				})
+				break;
 			}
 		}
+		self.state = state;
 	}
 	window.onhashchange = function(){
-		hashToStack();
+		parseHash();
 		//processState();
 		$timeout(processState)
 	};
-	hashToStack();
+	parseHash();
 	processState();
 })
 

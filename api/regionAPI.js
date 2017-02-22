@@ -19,7 +19,7 @@ function getRouter(router, database){
 					var diff = ((new Date().getTime()) - obj.value.date_inserted.getTime()) / 60000 ;
 					console.log(diff)
 					if (diff < 1){
-						res.send(obj.value);
+						res.send(obj.value.data);
 						return;
 					} else {
 						alreadyExists = true;
@@ -140,6 +140,26 @@ function getRouter(router, database){
 				else {
 					body.rg = [];
 					resolve(body);
+					return;
+				}
+			}
+		})
+	};
+	
+	function getRegionTypes() {
+		return new Promise(function(resolve, reject) {
+			database.mysql.query('SELECT id,name FROM `region_types`', databaseHandler);
+			function databaseHandler(err, result) {
+				if(err) {
+					reject({message: "internal database error: " + err.message});
+					return;
+				}
+				if(result.length > 0) {
+					resolve(result);
+					return;
+				}
+				else {
+					reject({message: "database contains no region_types"});
 					return;
 				}
 			}

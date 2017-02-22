@@ -1,4 +1,5 @@
 app.service("regionService", function($http, event){
+	var activeRequests = {};
 	var self = this;
 	var list = {};
 	var current = {};
@@ -22,7 +23,6 @@ app.service("regionService", function($http, event){
 		return current.id;
 	}
 	this.back = function() {
-		console.log(JSON.stringify(current))
 		var parent = list[current.id].parent;
 		if (parent < 0){
 			return -1;
@@ -80,8 +80,11 @@ app.service("regionService", function($http, event){
 		var oldid = current.id
 		current.id = targetid;
 		self.filter = "";
-		if (!list[targetid]){	
-			$http.post('/api/region', {id: current.id}).then(successRegionCallback, errorRegionCallback);
+		if (!list[targetid]){
+			if (activeRequests[targetid]){
+				return;
+			}
+			$http.post('/api/region', {id: targetid}).then(successRegionCallback, errorRegionCallback);
 			if (list[oldid]){
 				var child = list[oldid].r.find( function(obj){return obj.id == targetid} );
 				if (child){
@@ -92,27 +95,30 @@ app.service("regionService", function($http, event){
 				}
 			}
 			self.loading = true;
+			activeRequests[targetid] = true;
 			self.regions = [];
 			self.groups = [];
 		}
 		else {
-			regionChanged();
+			regionChanged(targetid);
+		}
+		
+		function successRegionCallback(response){
+			activeRequests[targetid] = false;
+			list[targetid] = response.data;
+			regionChanged(targetid);
+			self.loading = false;
 		}
 	}
-	function successRegionCallback(response)
-	{
-		list[current.id] = response.data;
-		regionChanged();
-	}
-	function regionChanged(){
-		current.name = list[current.id].name;
-		self.regions = list[current.id].r;
-		self.groups = list[current.id].rg;
-		self.loading = false;
+	function regionChanged(targetid){
+		current.name = list[targetid].name;
+		self.regions = list[targetid].r;
+		self.groups = list[targetid].rg;
+		event.request("digestCycle");
 	}
 	function errorRegionCallback(response)
 	{
-		console.log(response);
+		console.error(response);
 	}
 	function passesFilter(obj){
 		var filters = self.filter.toLowerCase().split(/[ ,_\-]+/);
